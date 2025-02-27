@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Busca de Vídeos</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+    <div class="toggle-container">
+        <span class="icon">🌙</span>
+        <label class="toggle-switch">
+            <input type="checkbox" id="toggle-theme">
+            <span class="slider"></span>
+        </label>
+        <span class="icon">🌞</span>
+    </div>
+    
+    <!-- <h1>Busque um Vídeo</h1> -->
+
+    <!-- Área de busca destacada -->
+    <div id="searchContainer">
+        <form id="searchForm">
+            <input type="text" id="query" placeholder="Digite o que deseja buscar..." required>
+            <button type="submit">Buscar</button>
+        </form>
+    </div>
+
+    <h3 id="totalResults">📊 Resultados encontrados: <b>0</b></h3>
+
+    <div id="videoResults"></div>
+
+    <!-- Modal -->
+    <div id="videoModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h4 id="modalTitle"></h4>
+            <iframe id="videoFrame" frameborder="0" allowfullscreen></iframe>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

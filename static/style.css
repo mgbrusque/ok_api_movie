@@ -1,0 +1,259 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #121212;
+    color: #ffffff;
+    transition: background-color 0.3s, color 0.3s;
+    text-align: center;
+}
+
+.light-mode {
+    background-color: #ffffff;
+    color: #000000;
+}
+
+/* Container principal */
+.container {
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 20px;
+    text-align: center;
+}
+
+/* Botões */
+button {
+    padding: 10px 20px;
+    border: none;
+    cursor: pointer;
+    background-color: #6200ea;
+    color: white;
+    font-size: 16px;
+    border-radius: 5px;
+    transition: background 0.3s;
+}
+
+button:hover {
+    background-color: #3700b3;
+}
+
+/* Container do toggle switch */
+.toggle-container {
+    display: flex;
+    align-items: center;
+    position: absolute;
+    top: 10px;
+    /*right: 10px;*/
+    gap: 0px; /* Espaço entre os ícones e o botão */
+}
+
+/* Ícones do sol e lua */
+.toggle-container .icon {
+    font-size: 22px;
+}
+
+/* Toggle Switch */
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 40px;
+    height: 22px;
+}
+
+/* Esconder o input padrão */
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+/* Estilo do botão deslizante */
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #444;
+    border-radius: 24px;
+    transition: .3s;
+}
+
+/* Bolinha do botão */
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 2px;
+    background-color: white;
+    transition: .3s;
+    border-radius: 50%;
+}
+
+/* Quando ativado, muda a cor e move a bolinha */
+input:checked + .slider {
+    background-color: #ffcc00;
+}
+
+input:checked + .slider:before {
+    transform: translateX(16px);
+}
+
+/* Formulário de busca */
+#searchForm {
+    margin: 20px auto;
+    padding: 15px;
+    background: #222;
+    border-radius: 10px;
+    display: inline-block;
+}
+
+.light-mode #searchForm {
+    background: #f1f1f1;
+}
+
+/* Ajuste no layout dos vídeos */
+#videoResults {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px; 
+    margin-top: 20px;
+}
+
+/* Estilização dos cards */
+.video-card {
+    width: 250px;
+    height: 380px;
+    margin: 10px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    text-align: center;
+    background: #1e1e1e;
+    color: white;
+    transition: background 0.3s, color 0.3s;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.video-title {
+    font-size: 14px; /* Fonte menor */
+    font-weight: bold;
+    text-transform: uppercase; /* Tudo em maiúsculas */
+    line-height: 1.2;
+    height: 3.6em; /* Máximo de 3 linhas */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    
+    /* Correção para funcionar em navegadores modernos */
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+}
+
+.light-mode .video-card {
+    background: #f9f9f9;
+    color: black;
+}
+
+.video-thumbnail {
+    width: 100%;
+    height: 140px;
+    border-radius: 5px;
+    object-fit: cover;
+}
+
+/* Ajuste para que o texto do filme não empurre o botão */
+.video-details {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.video-meta {
+    font-size: 14px;
+    margin-top: 5px;
+    color: #bbb;
+}
+
+.light-mode .video-meta {
+    color: #555;
+}
+
+/* Ajuste do botão "Assistir" */
+.watch-btn {
+    width: 100%;
+    padding: 8px;
+    margin-top: auto; /* Mantém o botão sempre na parte inferior */
+    border: none;
+    background: #ff4500;
+    color: white;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background 0.3s;
+}
+
+.watch-btn:hover {
+    background: #cc3700;
+}
+
+/* Modal */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    background-color: #222;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+    width: 60%;
+    text-align: center;
+    position: relative;
+}
+
+.light-mode .modal-content {
+    background-color: #f1f1f1;
+}
+
+.close {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 30px;
+    cursor: pointer;
+    color: white;
+}
+
+.light-mode .close {
+    color: black;
+}
+
+iframe {
+    width: 100%;
+    height: 400px;
+}
+
+/* Loader (Carregamento Infinito) */
+#loading {
+    text-align: center;
+    font-size: 18px;
+    padding: 20px;
+    display: none;
+}
