@@ -152,7 +152,7 @@ input:checked + .slider:before {
     
     /* Correção para funcionar em navegadores modernos */
     display: -webkit-box;
-    -webkit-line-clamp: 3;
+    /*-webkit-line-clamp: 3;*/
     -webkit-box-orient: vertical;
 }
 
