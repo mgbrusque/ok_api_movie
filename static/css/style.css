@@ -104,15 +104,16 @@ input:checked + .slider:before {
 
 /* Formulário de busca */
 #searchForm {
-    margin: 20px auto;
-    padding: 15px;
-    background: #222;
-    border-radius: 10px;
-    display: inline-block;
+    display: flex;
+    margin-left: auto;
+    margin-right: 2px; /* Adiciona o espaço da borda direita */
+    gap: 2px; /* Espaço entre input e botão */
+    right: 10px; /* Não é necessário se já tiver `margin-right` */
 }
 
+
 .light-mode #searchForm {
-    background: #f1f1f1;
+    background: #a8a8a8;
 }
 
 /* Ajuste no layout dos vídeos */
@@ -121,7 +122,7 @@ input:checked + .slider:before {
     flex-wrap: wrap;
     justify-content: center;
     gap: 10px; 
-    margin-top: 20px;
+    margin-top: 0px;
 }
 
 /* Estilização dos cards */
@@ -166,6 +167,13 @@ input:checked + .slider:before {
     height: 140px;
     border-radius: 5px;
     object-fit: cover;
+}
+
+/* Destaque para o filme selecionado */
+.focado {
+    outline: 2px solid #ffcc00; /* Borda amarela para indicar seleção */
+    transform: scale(1.02); /* Pequeno zoom para destacar */
+    transition: transform 0.2s, outline 0.2s;
 }
 
 /* Ajuste para que o texto do filme não empurre o botão */
@@ -256,4 +264,37 @@ iframe {
     font-size: 18px;
     padding: 20px;
     display: none;
+}
+
+#searchContainer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background: #222;
+    /*padding: 15px 0;*/
+    z-index: 1000; /* Garante que fique sobre os vídeos */
+    text-align: center;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3); /* Adiciona uma sombra */
+}
+
+.search-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* Input à esquerda, total à direita */
+    /*width: 100%;*/
+    /*max-width: 800px; 
+    margin: 0 auto; */
+    padding: 5px; /* Espaçamento interno */
+}
+
+.light-mode .search-row {
+    background: #a8a8a8;
+    color: black;
+}
+
+#totalResults {
+    /*margin-left: auto;*/
+    white-space: nowrap; /* Evita que quebre linha */
+    margin-top: 60px;
 }
