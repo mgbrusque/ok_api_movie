@@ -15,91 +15,33 @@ document.addEventListener("DOMContentLoaded", function () {
     let totalCount = 0;
     let filmes = []; // Inicialmente vazio
     let elementosNavegaveis = [];
-
-    /*function updateFocus() {
-        elementosNavegaveis = [
-            document.querySelector("#query"), // Campo de busca
-            document.querySelector("#searchForm button"), // Botão de buscar
-            ...document.querySelectorAll(".video-card"), // Todos os filmes
-            document.querySelector("#videoFrame") // Adiciona o iframe do modal
-        ].filter(el => el !== null); // Remove elementos nulos
-
-        if (elementosNavegaveis.length === 0) return;
-
-        elementosNavegaveis.forEach((el, index) => {
-            if (index === currentIndex) {
-                el.classList.add("focado"); // Adiciona destaque
-                if (el.tagName === "INPUT" || el.tagName === "BUTTON" || el.tagName === "IFRAME") {
-                    el.focus(); // Foca no input, botão ou iframe
-                } else {
-                    el.scrollIntoView({ behavior: "smooth", block: "center" });
-                }
-            } else {
-                el.classList.remove("focado");
-            }
-        });
-    }
-
-    document.addEventListener("keydown", function (event) {
-        let rowSize = Math.sqrt(elementosNavegaveis.length) | 0;
-        if (elementosNavegaveis.length === 0) return;
-
-        switch (event.key) {
-            case "ArrowRight":
-                if (currentIndex < elementosNavegaveis.length - 1) currentIndex++;
-                break;
-            case "ArrowLeft":
-                if (currentIndex > 0) currentIndex--;
-                break;
-            case "ArrowDown":
-                if (currentIndex + rowSize < elementosNavegaveis.length) currentIndex += rowSize;
-                break;
-            case "ArrowUp":
-                if (currentIndex - rowSize >= 0) currentIndex -= rowSize;
-                break;
-            case "Enter":
-                if (elementosNavegaveis[currentIndex].tagName === "BUTTON" || elementosNavegaveis[currentIndex].tagName === "INPUT") {
-                    elementosNavegaveis[currentIndex].click();
-                } else if (elementosNavegaveis[currentIndex].tagName === "IFRAME") {
-                    elementosNavegaveis[currentIndex].contentWindow.focus(); // Foca dentro do iframe
-                } else {
-                    elementosNavegaveis[currentIndex].querySelector(".watch-btn")?.click();
-                }
-                break;
-            case "Escape":
-                let searchInput = document.querySelector("#query");
-                if (document.activeElement === searchInput) {
-                    searchInput.value = "";
-                    searchInput.blur();
-                } else {
-                    document.getElementById("videoModal").style.display = "none";
-                    document.getElementById("videoFrame").src = "";
-                }
-                break;
-        }
-        updateFocus();
-    });
-
-    updateFocus();
-
-    // Chamar updateFocus() após carregar novos vídeos
-    document.addEventListener("videosCarregados", function () {
-        currentIndex = 0;
-        updateFocus();
-    });*/
     
-    function buscarVideos(novaBusca = false) {
+    function coletarFiltros() {
+        return {
+            duration: document.getElementById("duration").value,
+            hd: document.getElementById("hd").checked ? "ON" : ""
+        };
+    }
+    
+    function buscarVideos(novaBusca = false, filtros = {}) {
         if (loading) return;
         loading = true;
-
+    
         if (novaBusca) {
             offset = 0;
             videoResults.innerHTML = "";
         }
+    
+        const params = new URLSearchParams({
+            query,
+            offset,
+            duration: filtros.duration || "",
+            hd: filtros.hd || ""
+        });
 
         fetch("/buscar", {
             method: "POST",
-            body: new URLSearchParams({ query, offset }),
+            body: params,
             headers: { "Content-Type": "application/x-www-form-urlencoded" }
         })
         .then(response => response.json())
@@ -155,9 +97,25 @@ document.addEventListener("DOMContentLoaded", function () {
     searchForm.addEventListener("submit", function (event) {
         event.preventDefault();
         query = document.getElementById("query").value;
-        buscarVideos(true);
+    
+        const duration = document.getElementById("duration").value;
+        const hd = document.getElementById("hd").checked ? "ON" : "";
+    
+        buscarVideos(true, { duration, hd });
     });
-
+    
+    document.getElementById("duration").addEventListener("change", () => {
+        query = document.getElementById("query").value;
+        const filtros = coletarFiltros();
+        buscarVideos(true, filtros);
+    });
+    
+    document.getElementById("hd").addEventListener("change", () => {
+        query = document.getElementById("query").value;
+        const filtros = coletarFiltros();
+        buscarVideos(true, filtros);
+    });
+    
     closeBtn.addEventListener("click", function () {
         modal.style.display = "none";
         videoFrame.src = "";

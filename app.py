@@ -12,7 +12,7 @@ def formatar_duracao(ms):
     return f"{horas:02}:{minutos:02}:{segundos:02}"
 
 # Função para buscar vídeos da API OK.ru
-def buscar_videos(query, offset):
+def buscar_videos(query, offset, duration="", hd_quality=""):
     url = "https://ok.ru/web-api/v2/video/fetchSearchResult"
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
@@ -25,11 +25,20 @@ def buscar_videos(query, offset):
         "parameters": {
             "searchQuery": query,
             "currentStateId": "video",
-            "durationType": "ANY",
-            "hd": False,
-            "videosOffset": offset  # Enviamos o offset corretamente agora!
+            "durationType": duration or "ANY",
+            "hd": hd_quality == "ON",
+            "videosOffset": offset,
+            "filters": {
+                "st.cmd": "searchResult",
+                "st.mode": "Movie",
+                "st.gmode": "Groups",
+                "st.query": query
+            }
         }
     }
+
+    if duration:
+        payload["parameters"]["filters"]["st.vln"] = duration
 
     #print(f"🔍 Enviando requisição para a API com offset {offset}...")  # LOG
 
@@ -68,10 +77,13 @@ def index():
 def buscar():
     query = request.form.get("query", "")
     offset = int(request.form.get("offset", 0))
+    duration = request.form.get("duration", "")
+    hd_quality = request.form.get("hd", "")
+    offset = int(request.form.get("offset", 0))
 
     #print(f"🔄 Cliente requisitou: query='{query}', offset={offset}")  # LOG
 
-    resultado = buscar_videos(query, offset)
+    resultado = buscar_videos(query, offset, duration, hd_quality)
 
     #print(f"📌 Enviando {len(resultado['videos'])} vídeos para o cliente.")  # LOG
 

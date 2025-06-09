@@ -128,17 +128,11 @@
   .video-card:hover {
     transform: translateY(-4px);
     box-shadow: 0 4px 12px var(--card-shadow);
-  }  
+  }
   
   /* thumb */
-  /* Imagem: altura máxima fixa */
-  .video-card .thumb-wrapper img {
-    max-height: 160px;
-    width: 100%;
-    object-fit: cover;
-    border-radius: 6px 6px 0 0;
-  }
-
+  .video-card .thumb-wrapper { position: relative; }
+  
   .video-card .duration-badge {
     position: absolute; bottom: 6px; right: 6px;
     background: rgba(0, 0, 0, 0.75); color: #fff;
@@ -151,10 +145,12 @@
     font-size: 1rem; line-height: 1.3; font-weight: 600;
   }
   
-  /* Espaço para meta e botão */
+  /* meta (views/likes) */
   .video-card .meta {
-    margin-top: auto;
-    padding-bottom: .5rem;
+    justify-content: center;     /* centraliza ícones + texto */
+    display: flex; gap: 0.25rem;
+    font-size: 0.8rem; color: #777;
+    margin-bottom: 0.75rem;
   }
   
   /*--------------------------
@@ -225,40 +221,32 @@
   .video-card {
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
-    height: auto;
-    max-width: 100%;
-    padding-bottom: 0;
-    background: var(--card-bg);
-    border-radius: 8px;
-    box-shadow: 0 2px 6px var(--card-shadow);
-    text-align: center;
-    overflow: hidden;
-    transition: transform 0.2s, box-shadow 0.2s;
+    height: 100%;
   }
   
-  /* Botão */
+  /* 3) Botão largo */
   .video-card .watch-btn {
+    margin-top: auto;                /* empurra pra base do card */
     width: 100%;
     border: none;
     border-top: 1px solid rgba(0,0,0,.05);
-    border-radius: 0 0 8px 8px;
+    border-radius: 0 0 8px 8px;      /* acompanha o radius do card */
     background: var(--watch-bg);
     color: #fff;
     font-weight: 600;
-    font-size: 0.95rem;
-    padding: 0.65rem 0;
+    font-size: .95rem;
+    padding: .65rem 0;
     cursor: pointer;
-    transition: background 0.25s, transform 0.15s;
-    margin-top: auto;
+    transition: background .25s, transform .15s;
   }
-
+  
   .video-card .watch-btn:hover,
   .video-card .watch-btn:focus {
     background: var(--watch-hover);
     transform: translateY(-2px);
   }
-
+  
+  /* pequeno efeito ao clicar */
   .video-card .watch-btn:active {
     transform: scale(.98);
   }
@@ -317,76 +305,53 @@
     }
   }
   
-  /* =========================================================
-   CABEÇALHO:  1 linha em desktop  |  bloco centralizado no mobile
-   ========================================================= */
 
-/* ----- DESKTOP / TABLET  ≥ 600 px ----- */
-@media (min-width: 600px) {
+  /* =========================================
+   Layout de logo + controles no cabeçalho
+   ========================================= */
 
-  /* 1) Logo à esquerda – controles numa linha só à direita */
-  #searchContainer{
-    justify-content: space-between;   /* logo ⇠⇢ controles */
-    flex-wrap: nowrap;                /* NADA de quebra pra 2ª linha */
-  }
-
-  /* 2) Bloco com toggle + form fica tudo inline */
-  .controls{
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    flex: 1;                          /* pode ocupar o resto do espaço */
-    min-width: 0;                     /* permite encolher sem quebrar */
-  }
-
-  /* 3) Form vira flex-inline também, sem quebrar */
-  #searchForm{
-    display: flex;
-    align-items: center;
-    flex-wrap: nowrap;                /* mantém 1 linha */
-    gap: .5rem;
-    flex: 1;
-    min-width: 0;
-  }
-
-  /* 4) Faz o input de texto se adaptar, sem empurrar tudo */
-  #query{
-    flex: 1 1 180px;                  /* cresce e encolhe, mínimo 180px */
-    min-width: 120px;
-  }
+/* Cabeçalho vira “logo   espaço   controles” */
+#searchContainer{
+  justify-content: space-between;   /* distribui logo ↔ controles */
 }
 
-/* ----- MOBILE  ≤ 480 px -----  (ajusta centralização) */
-@media (max-width: 480px) {
+/* --- LOGO --- */
+.logo img{
+  height: 38px;                     /* ajuste como preferir */
+  display: block;
+}
 
-  /* mantém coluna, mas centraliza todo o cabeçalho na tela */
+/* --- CONTROLES --- */
+.controls{
+  display: flex;
+  align-items: center;
+  gap: 1rem;                        /* espaço entre toggle e form */
+}
+
+/* força o form a não crescer infinito */
+#searchForm{
+  flex-wrap: wrap;
+}
+
+@media (max-width: 768px){
+  /* No tablet/celular empilha tudo de novo */
   #searchContainer{
-    flex-direction: column;
-    align-items: center;              /* centraliza logo + campos */
-    max-width: 320px;                 /* largura “cartão” */
-    margin: 0 auto;                   /* centra no viewport */
-  }
-
-  /* controles em coluna, alinhados no centro */
-  .controls{
     flex-direction: column;
     align-items: stretch;
-    width: 100%;
   }
-
-  #searchForm{
+  .controls{
     flex-direction: column;
+    align-items: flex-start;
     width: 100%;
   }
-
-  /* larga full-width pros campos */
-  #searchForm select,
-  #searchForm input[type="text"],
-  #searchForm button{ width: 100%; }
+  #searchForm{
+    width: 100%;
+  }
 }
 
-/* ----- LOGO (tamanho) ----- */
-.logo img{
-  height: 36px;        /* ajuste aqui se quiser maior/menor */
-  display: block;
+@media (max-width: 480px){
+  /* ainda vale o ajuste compacto que você já tinha */
+  #searchContainer{
+    max-width: 320px;
+  }
 }
