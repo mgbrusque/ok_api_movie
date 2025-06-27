@@ -8,35 +8,35 @@ document.addEventListener("DOMContentLoaded", function () {
     const closeBtn = document.querySelector(".close");
     const toggleThemeBtn = document.getElementById("toggle-theme");
 
-    let currentIndex = 0;
-    let query = "";
     let offset = 0;
     let loading = false;
     let totalCount = 0;
-    let filmes = []; // Inicialmente vazio
-    let elementosNavegaveis = [];
-    
+    const idsExibidos = new Set(); // IDs já exibidos na tela
+
     function coletarFiltros() {
         return {
             duration: document.getElementById("duration").value,
-            hd: document.getElementById("hd").checked ? "ON" : ""
+            hd: document.getElementById("hd").checked ? "ON" : "",
+            fonte: document.getElementById("fonte").value
         };
     }
-    
-    function buscarVideos(novaBusca = false, filtros = {}) {
-        if (loading) return;
+
+    function buscarVideos(queryText, novaBusca = false, filtros = {}) {
+        if (loading || !queryText) return;
         loading = true;
-    
+
         if (novaBusca) {
             offset = 0;
+            idsExibidos.clear(); // limpa os IDs exibidos se for nova busca
             videoResults.innerHTML = "";
         }
-    
+
         const params = new URLSearchParams({
-            query,
+            query: queryText,
             offset,
             duration: filtros.duration || "",
-            hd: filtros.hd || ""
+            hd: filtros.hd || "",
+            fonte: filtros.fonte || "API"
         });
 
         fetch("/buscar", {
@@ -44,108 +44,119 @@ document.addEventListener("DOMContentLoaded", function () {
             body: params,
             headers: { "Content-Type": "application/x-www-form-urlencoded" }
         })
-        .then(response => response.json())
-        .then(data => {
-            if (novaBusca) {
-                totalCount = data.totalCount;
-                totalResults.innerHTML = `TOTAL: <b>${totalCount}</b>`;
-            }
+            .then(response => response.json())
+            .then(data => {
+                if (novaBusca) {
+                    totalCount = data.totalCount;
+                    totalResults.innerHTML = `TOTAL: <b>${totalCount}</b>`;
+                }
 
-            const videoIdsExistentes = new Set();
-            document.querySelectorAll(".watch-btn").forEach(button => {
-                videoIdsExistentes.add(button.getAttribute("data-id"));
-            });
+                data.videos.forEach(video => {
+                    // Evita vídeos duplicados na tela
+                    if (idsExibidos.has(video.id)) return;
 
-            let novosVideos = 0;
-
-            data.videos.forEach(video => {
-                if (!videoIdsExistentes.has(video.id)) {
                     const videoCard = document.createElement("div");
                     videoCard.classList.add("video-card");
                     videoCard.innerHTML = `
                         <img src="${video.thumbnail}" alt="${video.title}" class="video-thumbnail">
-                        <h3 class="video-title">${video.title}</h3> <!-- Aqui foi corrigido -->
+                        <h3 class="video-title">${video.title}</h3>
                         <p class="video-duration">⏳ ${video.duration}</p>
-                        <p class="video-meta">👁 ${video.views} views</p> 
                         <button class="watch-btn" data-id="${video.id}" data-title="${video.title}">Assistir</button>
                     `;
                     videoResults.appendChild(videoCard);
-                    novosVideos++;
-                }
-            });
-
-            document.querySelectorAll(".watch-btn").forEach(button => {
-                button.addEventListener("click", function () {
-                    const videoId = this.getAttribute("data-id");
-                    const title = this.getAttribute("data-title");
-
-                    modalTitle.innerText = title;
-                    videoFrame.src = `https://ok.ru/videoembed/${videoId}`;
-                    modal.style.display = "flex";  
+                    idsExibidos.add(video.id); // Marca o ID como exibido
                 });
-            });
 
-            offset += data.videos.length;
-            loading = false;
-        })
-        .catch(error => {
-            console.error("❌ Erro ao buscar vídeos:", error);
-            loading = false;
-        });
+                document.querySelectorAll(".watch-btn").forEach(button => {
+                    button.addEventListener("click", function () {
+                        const videoId = this.getAttribute("data-id");
+                        const title = this.getAttribute("data-title");
+
+                        modalTitle.innerText = title;
+                        videoFrame.src = `https://ok.ru/videoembed/${videoId}`;
+                        modal.style.display = "flex";
+                        history.pushState(null, '', `?video=${videoId}`);
+                    });
+                });
+
+                offset += data.videos.length;
+                loading = false;
+            })
+            .catch(error => {
+                console.error("❌ Erro ao buscar vídeos:", error);
+                loading = false;
+            });
     }
 
     searchForm.addEventListener("submit", function (event) {
         event.preventDefault();
-        query = document.getElementById("query").value;
-    
-        const duration = document.getElementById("duration").value;
-        const hd = document.getElementById("hd").checked ? "ON" : "";
-    
-        buscarVideos(true, { duration, hd });
+        const queryInput = document.getElementById("query").value.trim();
+        const filtros = coletarFiltros();
+        buscarVideos(queryInput, true, filtros);
     });
-    
+
     document.getElementById("duration").addEventListener("change", () => {
-        query = document.getElementById("query").value;
+        const queryInput = document.getElementById("query").value.trim();
         const filtros = coletarFiltros();
-        buscarVideos(true, filtros);
+        buscarVideos(queryInput, true, filtros);
     });
-    
+
     document.getElementById("hd").addEventListener("change", () => {
-        query = document.getElementById("query").value;
+        const queryInput = document.getElementById("query").value.trim();
         const filtros = coletarFiltros();
-        buscarVideos(true, filtros);
+        buscarVideos(queryInput, true, filtros);
     });
-    
+
+    document.getElementById("fonte").addEventListener("change", () => {
+        const queryInput = document.getElementById("query").value.trim();
+        const filtros = coletarFiltros();
+        buscarVideos(queryInput, true, filtros);
+    });
+
     closeBtn.addEventListener("click", function () {
         modal.style.display = "none";
         videoFrame.src = "";
+        history.pushState(null, '', window.location.pathname);
     });
 
     window.addEventListener("click", function (event) {
         if (event.target === modal) {
             modal.style.display = "none";
             videoFrame.src = "";
+            history.pushState(null, '', window.location.pathname);
         }
     });
 
     window.addEventListener("scroll", function () {
         if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 200 && !loading) {
-            buscarVideos();
+            const queryInput = document.getElementById("query").value.trim();
+            if (queryInput) {
+                const filtros = coletarFiltros();
+                buscarVideos(queryInput, false, filtros);
+            }
         }
     });
 
-    // Alternância de tema
+    // Tema
     toggleThemeBtn.addEventListener("change", function () {
         document.body.classList.toggle("light-mode");
         localStorage.setItem("theme", document.body.classList.contains("light-mode") ? "light" : "dark");
     });
 
-    // Mantém o tema salvo do usuário
     if (localStorage.getItem("theme") === "light") {
         document.body.classList.add("light-mode");
         toggleThemeBtn.checked = true;
     }
 
-    // Correção do modal: Certifica que ele está oculto ao carregar a página
+    // Correção do modal no carregamento direto por link
+    const urlParams = new URLSearchParams(window.location.search);
+    const videoIdParam = urlParams.get('video');
+
+    if (videoIdParam) {
+        modalTitle.innerText = "Carregando vídeo...";
+        videoFrame.src = `https://ok.ru/videoembed/${videoIdParam}`;
+        modal.style.display = "flex";
+    }
+
     modal.style.display = "none";
 });
