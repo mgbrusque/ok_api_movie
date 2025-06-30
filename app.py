@@ -21,23 +21,29 @@ def buscar_videos_bd(query, offset=0, limit=20):
     cur = conn.cursor()
 
     # Consulta os vídeos com paginação
-    sql_dados = """
+    # Divide a query em palavras
+    palavras = query.lower().split()
+    like_clauses = " AND ".join(["LOWER(nome) LIKE %s" for _ in palavras])
+    params = [f"%{p}%" for p in palavras]
+
+    # Consulta com cláusulas múltiplas
+    sql_dados = f"""
         SELECT id, nome, tempo, imagem
         FROM filmes
-        WHERE LOWER(nome) LIKE %s
+        WHERE {like_clauses}
         ORDER BY nome
         OFFSET %s LIMIT %s
     """
-    cur.execute(sql_dados, (f'%{query.lower()}%', offset, limit))
+    cur.execute(sql_dados, (*params, offset, limit))
     rows = cur.fetchall()
 
     # Consulta o total de resultados (sem offset)
-    sql_total = """
+    sql_total = f"""
         SELECT COUNT(*)
         FROM filmes
-        WHERE LOWER(nome) LIKE %s
+        WHERE {like_clauses}
     """
-    cur.execute(sql_total, (f'%{query.lower()}%',))
+    cur.execute(sql_total, tuple(params))
     total_count = cur.fetchone()[0]
 
     cur.close()
@@ -196,3 +202,5 @@ def buscar():
         "totalCount": total_api + total_bd
     })
 
+if __name__ == "__main__":
+    app.run(debug=True)
