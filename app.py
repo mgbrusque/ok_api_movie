@@ -196,5 +196,3 @@ def buscar():
         "totalCount": total_api + total_bd
     })
 
-if __name__ == '__main__':
-    app.run(debug=True)
