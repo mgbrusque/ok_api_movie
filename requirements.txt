@@ -1,0 +1,9 @@
+flask
+requests
+gunicorn
+waitress
+psycopg2-binary
+python-dotenv
+selenium-wire
+webdriver-manager
+blinker>=1.9

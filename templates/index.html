@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Busca de Vídeos</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/favicon.png') }}">
+</head>
+<body>
+    
+    <div id="searchContainer">
+        <!-- LOGO à esquerda -->
+        <a href="/" class="logo">
+          <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Logo" />
+        </a>
+      
+        <!-- CONTROLES à direita -->
+        <div class="controls">
+          <div class="toggle-container">
+            <span class="icon">🌙</span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="toggle-theme">
+              <span class="slider"></span>
+            </label>
+            <span class="icon">🌞</span>
+          </div>
+      
+          <form id="searchForm">
+            <label for="fonte">Fonte:</label>
+            <select id="fonte" name="fonte">
+              <option value="API">API</option>  
+              <option value="BD">Banco</option>
+            </select>
+            
+            <!-- filtros só da API -->
+            <div id="filters-api" class="filters">
+              <label for="duration">Duração:</label>
+              <select id="duration" name="duration">
+                <option value="">Qualquer duração</option>
+                <option value="LONG">Longo</option>
+                <option value="SHORT">Curto</option>
+              </select>
+
+              <label for="hd">HD:</label>
+              <input type="checkbox" id="hd" name="hd">
+            </div>
+
+            <!-- filtros só do Banco -->
+            <div id="filters-bd" class="filters" style="display:none">
+              <label for="duration_bd">Duração:</label>
+              <select id="duration_bd" name="duration_bd">
+                <option value="">Todas</option>
+                <option value="0-20">0-20 min</option>
+                <option value="21-60">21-60 min</option>
+                <option value="61-90">61-90 min</option>
+                <option value="91-120">91-120 min</option>
+                <option value="121-160">121-160 min</option>
+                <option value="161-200">161-200 min</option>
+                <option value="201+">> 201 min</option>
+              </select>
+
+              <label for="order_bd">Ordem:</label>
+              <select id="order_bd" name="order_bd">
+                <option value="tempo_desc">Tempo ↓</option>
+                <option value="tempo_asc">Tempo ↑</option>
+                <option value="nome_asc">Nome A-Z</option>
+                <option value="nome_desc">Nome Z-A</option>
+                <option value="random">Aleatório</option>
+              </select>
+            </div>
+      
+            <input type="text" id="query" placeholder="Digite o que deseja buscar..." required>
+            <button type="submit">Buscar</button>
+          </form>
+        </div>
+    </div>
+    <div><h5 id="totalResults">TOTAL: <b>0</b></h5></div>
+    <div id="videoResults"></div>
+
+    <!-- Modal -->
+    <div id="videoModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h4 id="modalTitle"></h4>
+            <iframe id="videoFrame" frameborder="0" allowfullscreen></iframe>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <script>
+      const toggle = document.getElementById('toggle-theme');
+    
+      // Aplica o modo escuro por padrão, se não tiver nada salvo
+      if (!localStorage.getItem('theme')) {
+        document.body.classList.add('dark');
+        toggle.checked = true;
+        localStorage.setItem('theme', 'dark');
+      }
+    
+      // Se o usuário já escolheu, respeita isso
+      if (localStorage.getItem('theme') === 'dark') {
+        document.body.classList.add('dark');
+        toggle.checked = true;
+      }
+    
+      toggle.addEventListener('change', () => {
+        document.body.classList.toggle('dark');
+        localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+      });
+    </script>
+    
+</body>
+</html>
