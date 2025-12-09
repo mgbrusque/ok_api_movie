@@ -217,7 +217,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const videoIdParam = urlParams.get("video");
     if (videoIdParam) {
         abrirModal(videoIdParam, "Carregando vídeo...");
+    } else {
+        modal.style.display = "none";
     }
-
-    modal.style.display = "none";
 });
