@@ -6,38 +6,111 @@ document.addEventListener("DOMContentLoaded", function () {
     const modalTitle = document.getElementById("modalTitle");
     const videoFrame = document.getElementById("videoFrame");
     const closeBtn = document.querySelector(".close");
+    const downloadBtn = document.getElementById("downloadBtn");
     const toggleThemeBtn = document.getElementById("toggle-theme");
 
     let offset = 0;
     let loading = false;
     let totalCount = 0;
-    const idsExibidos = new Set(); // IDs já exibidos na tela
+    const idsExibidos = new Set();
+    let currentVideoId = null;
+    let currentVideoTitle = "";
 
     function coletarFiltros() {
         const fonte = document.getElementById("fonte").value;
         if (fonte === "API") {
-          return {
-            fonte,
-            duration: document.getElementById("duration").value,
-            hd: document.getElementById("hd").checked ? "ON" : ""
-          };
+            return {
+                fonte,
+                duration: document.getElementById("duration").value,
+                hd: document.getElementById("hd").checked ? "ON" : ""
+            };
         }
-        // Banco
         return {
-          fonte,
-          duration_bd: document.getElementById("duration_bd").value,
-          order_bd:    document.getElementById("order_bd").value
+            fonte,
+            duration_bd: document.getElementById("duration_bd").value,
+            order_bd: document.getElementById("order_bd").value
         };
-      }      
+    }
 
     function alternarFiltros() {
         const fonte = document.getElementById("fonte").value;
         document.getElementById("filters-api").style.display = fonte === "API" ? "flex" : "none";
-        document.getElementById("filters-bd").style.display  = fonte === "BD"  ? "flex" : "none";
-      }
-      document.getElementById("fonte").addEventListener("change", alternarFiltros);
-      window.addEventListener("DOMContentLoaded", alternarFiltros);
+        document.getElementById("filters-bd").style.display = fonte === "BD" ? "flex" : "none";
+    }
+    document.getElementById("fonte").addEventListener("change", alternarFiltros);
+    alternarFiltros();
 
+    function abrirModal(videoId, title) {
+        currentVideoId = videoId;
+        currentVideoTitle = title || "";
+        modalTitle.innerText = title;
+        videoFrame.src = `https://ok.ru/videoembed/${videoId}`;
+        modal.style.display = "flex";
+        history.pushState(null, "", `?video=${videoId}`);
+    }
+
+    function limparModal() {
+        modal.style.display = "none";
+        videoFrame.src = "";
+        currentVideoId = null;
+        currentVideoTitle = "";
+        history.pushState(null, "", window.location.pathname);
+    }
+
+    function solicitarDownload(videoId, title) {
+        if (!videoId || !downloadBtn) return;
+        downloadBtn.disabled = true;
+        downloadBtn.textContent = "Preparando...";
+        const qual = document.getElementById("qualitySelect")?.value || "";
+        const url = qual ? `/download/${encodeURIComponent(videoId)}?h=${qual}` : `/download/${encodeURIComponent(videoId)}`;
+        fetch(url)
+            .then(res => res.json().then(data => ({ ok: res.ok, data })))
+            .then(({ ok, data }) => {
+                downloadBtn.disabled = false;
+                downloadBtn.textContent = "Baixar vídeo";
+                if (!ok || !data || data.error || !data.url) {
+                    alert(data && data.error ? data.error : "Não foi possível gerar o link de download.");
+                    return;
+                }
+                if (data.streaming) {
+                    alert("Download não disponível: este vídeo só tem streaming (m3u8/DASH).");
+                    return;
+                }
+                const a = document.createElement("a");
+                a.href = data.url;
+                a.target = "_blank";
+                a.download = `${(title || "video").replace(/[^a-z0-9_-]+/gi, "_")}.mp4`;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+            })
+            .catch(() => {
+                downloadBtn.disabled = false;
+                downloadBtn.textContent = "Baixar vídeo";
+                alert("Falha ao obter link de download.");
+            });
+    }
+
+    function adicionarVideoCard(video) {
+        if (idsExibidos.has(video.id)) return;
+
+        const videoCard = document.createElement("div");
+        videoCard.classList.add("video-card");
+        videoCard.innerHTML = `
+            <img src="${video.thumbnail}" alt="${video.title}" class="video-thumbnail">
+            <h3 class="video-title">${video.title}</h3>
+            <p class="video-duration">Duração: ${video.duration}</p>
+            <div class="card-actions">
+                <button class="watch-btn" data-id="${video.id}" data-title="${video.title}">Assistir</button>
+            </div>
+        `;
+
+        const watchBtn = videoCard.querySelector(".watch-btn");
+        watchBtn.addEventListener("click", () => abrirModal(video.id, video.title));
+
+        videoResults.appendChild(videoCard);
+        idsExibidos.add(video.id);
+    }
 
     function buscarVideos(queryText, novaBusca = false, filtros = {}) {
         if (loading || !queryText) return;
@@ -45,12 +118,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (novaBusca) {
             offset = 0;
-            idsExibidos.clear(); // limpa os IDs exibidos se for nova busca
+            idsExibidos.clear();
             videoResults.innerHTML = "";
         }
 
         const params = new URLSearchParams({ query: queryText, offset, fonte: filtros.fonte });
-        Object.entries(filtros).forEach(([k,v]) => { if (k !== "fonte" && v !== "") params.append(k,v); });
+        Object.entries(filtros).forEach(([k, v]) => { if (k !== "fonte" && v !== "") params.append(k, v); });
 
         fetch("/buscar", {
             method: "POST",
@@ -64,39 +137,13 @@ document.addEventListener("DOMContentLoaded", function () {
                     totalResults.innerHTML = `TOTAL: <b>${totalCount}</b>`;
                 }
 
-                data.videos.forEach(video => {
-                    // Evita vídeos duplicados na tela
-                    if (idsExibidos.has(video.id)) return;
-
-                    const videoCard = document.createElement("div");
-                    videoCard.classList.add("video-card");
-                    videoCard.innerHTML = `
-                        <img src="${video.thumbnail}" alt="${video.title}" class="video-thumbnail">
-                        <h3 class="video-title">${video.title}</h3>
-                        <p class="video-duration">⏳ ${video.duration}</p>
-                        <button class="watch-btn" data-id="${video.id}" data-title="${video.title}">Assistir</button>
-                    `;
-                    videoResults.appendChild(videoCard);
-                    idsExibidos.add(video.id); // Marca o ID como exibido
-                });
-
-                document.querySelectorAll(".watch-btn").forEach(button => {
-                    button.addEventListener("click", function () {
-                        const videoId = this.getAttribute("data-id");
-                        const title = this.getAttribute("data-title");
-
-                        modalTitle.innerText = title;
-                        videoFrame.src = `https://ok.ru/videoembed/${videoId}`;
-                        modal.style.display = "flex";
-                        history.pushState(null, '', `?video=${videoId}`);
-                    });
-                });
+                data.videos.forEach(adicionarVideoCard);
 
                 offset += data.videos.length;
                 loading = false;
             })
             .catch(error => {
-                console.error("❌ Erro ao buscar vídeos:", error);
+                console.error("Erro ao buscar vídeos:", error);
                 loading = false;
             });
     }
@@ -126,26 +173,19 @@ document.addEventListener("DOMContentLoaded", function () {
         buscarVideos(queryInput, true, filtros);
     });
 
-    // filtros exclusivos do Banco
     ["duration_bd", "order_bd"].forEach(id => {
         document.getElementById(id).addEventListener("change", () => {
-        const queryInput = document.getElementById("query").value.trim();
-        const filtros = coletarFiltros();
-        buscarVideos(queryInput, true, filtros);
+            const queryInput = document.getElementById("query").value.trim();
+            const filtros = coletarFiltros();
+            buscarVideos(queryInput, true, filtros);
         });
     });
 
-    closeBtn.addEventListener("click", function () {
-        modal.style.display = "none";
-        videoFrame.src = "";
-        history.pushState(null, '', window.location.pathname);
-    });
+    closeBtn.addEventListener("click", limparModal);
 
     window.addEventListener("click", function (event) {
         if (event.target === modal) {
-            modal.style.display = "none";
-            videoFrame.src = "";
-            history.pushState(null, '', window.location.pathname);
+            limparModal();
         }
     });
 
@@ -159,7 +199,6 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    // Tema
     toggleThemeBtn.addEventListener("change", function () {
         document.body.classList.toggle("light-mode");
         localStorage.setItem("theme", document.body.classList.contains("light-mode") ? "light" : "dark");
@@ -170,14 +209,14 @@ document.addEventListener("DOMContentLoaded", function () {
         toggleThemeBtn.checked = true;
     }
 
-    // Correção do modal no carregamento direto por link
-    const urlParams = new URLSearchParams(window.location.search);
-    const videoIdParam = urlParams.get('video');
+    if (downloadBtn) {
+        downloadBtn.addEventListener("click", () => solicitarDownload(currentVideoId, currentVideoTitle));
+    }
 
+    const urlParams = new URLSearchParams(window.location.search);
+    const videoIdParam = urlParams.get("video");
     if (videoIdParam) {
-        modalTitle.innerText = "Carregando vídeo...";
-        videoFrame.src = `https://ok.ru/videoembed/${videoIdParam}`;
-        modal.style.display = "flex";
+        abrirModal(videoIdParam, "Carregando vídeo...");
     }
 
     modal.style.display = "none";
