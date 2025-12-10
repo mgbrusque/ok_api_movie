@@ -13,6 +13,8 @@
     --card-shadow: rgba(0, 0, 0, 0.08);
     --accent-color: #1576ff;
     --input-bg: #f0f2f5;
+    --lang-active-color: #2ecc71;
+    --lang-inactive-color: #121212;
   }
   
   body.dark {
@@ -23,6 +25,7 @@
     --card-shadow: rgba(0, 0, 0, 0.6);
     --accent-color: #4ea8ff;
     --input-bg: #1a1a1a;
+    --lang-inactive-color: #ffffff;
   }
   
   /*--------------------------
@@ -56,6 +59,21 @@
   }
   
   .toggle-container { display: flex; align-items: center; gap: 0.25rem; }
+  .language-switch { display: flex; align-items: center; gap: 0.35rem; }
+  .lang-option {
+    background: transparent;
+    border: none;
+    color: var(--lang-inactive-color);
+    font-weight: 700;
+    font-size: 0.95rem;
+    cursor: pointer;
+    padding: 0.2rem 0.15rem;
+    transition: color 0.2s, transform 0.15s;
+  }
+  .lang-option.active { color: var(--lang-active-color); }
+  .lang-option:focus-visible { outline: 2px solid var(--accent-color); outline-offset: 2px; }
+  .lang-option:hover { transform: translateY(-1px); }
+  .lang-divider { color: var(--lang-inactive-color); opacity: 0.6; }
   
   /* Toggle switch */
   .toggle-switch { position: relative; width: 46px; height: 24px; }

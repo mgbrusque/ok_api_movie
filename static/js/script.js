@@ -7,7 +7,145 @@ document.addEventListener("DOMContentLoaded", function () {
     const videoFrame = document.getElementById("videoFrame");
     const closeBtn = document.querySelector(".close");
     const downloadBtn = document.getElementById("downloadBtn");
-    const toggleThemeBtn = document.getElementById("toggle-theme");
+    const langOptions = document.querySelectorAll(".lang-option");
+
+    const translations = {
+        pt: {
+            appTitle: "Busca de Vídeos",
+            labelLanguage: "Idioma:",
+            optionLangPt: "Português (BR)",
+            optionLangEn: "English (US)",
+            optionLangEs: "Español",
+            labelSource: "Fonte:",
+            optionSourceApi: "API",
+            optionSourceDb: "Banco",
+            labelDurationApi: "Duração:",
+            optionDurationAny: "Qualquer duração",
+            optionDurationLong: "Longo",
+            optionDurationShort: "Curto",
+            labelHd: "HD:",
+            labelDurationBd: "Duração:",
+            optionDurationBdAll: "Todas",
+            optionDurationBd0_20: "0-20 min",
+            optionDurationBd21_60: "21-60 min",
+            optionDurationBd61_90: "61-90 min",
+            optionDurationBd91_120: "91-120 min",
+            optionDurationBd121_160: "121-160 min",
+            optionDurationBd161_200: "161-200 min",
+            optionDurationBd201Plus: "> 201 min",
+            labelOrder: "Ordem:",
+            optionOrderTimeDesc: "Tempo decrescente",
+            optionOrderTimeAsc: "Tempo crescente",
+            optionOrderNameAsc: "Nome A-Z",
+            optionOrderNameDesc: "Nome Z-A",
+            optionOrderRandom: "Aleatório",
+            placeholderSearch: "Digite o que deseja buscar...",
+            buttonSearch: "Buscar",
+            totalLabel: "TOTAL",
+            durationLabel: "Duração",
+            watchButton: "Assistir",
+            labelQuality: "Qualidade:",
+            optionQualityAuto: "Auto (melhor)",
+            buttonDownload: "Baixar vídeo",
+            preparingDownload: "Preparando...",
+            downloadErrorGeneric: "Não foi possível gerar o link de download.",
+            downloadStreamingOnly: "Download não disponível: este vídeo só tem streaming (m3u8/DASH).",
+            downloadFail: "Falha ao obter link de download.",
+            loadingVideo: "Carregando vídeo...",
+            searchError: "Erro ao buscar vídeos"
+        },
+        en: {
+            appTitle: "Video Search",
+            labelLanguage: "Language:",
+            optionLangPt: "Portuguese (BR)",
+            optionLangEn: "English (US)",
+            optionLangEs: "Spanish",
+            labelSource: "Source:",
+            optionSourceApi: "API",
+            optionSourceDb: "Database",
+            labelDurationApi: "Duration:",
+            optionDurationAny: "Any duration",
+            optionDurationLong: "Long",
+            optionDurationShort: "Short",
+            labelHd: "HD:",
+            labelDurationBd: "Duration:",
+            optionDurationBdAll: "All",
+            optionDurationBd0_20: "0-20 min",
+            optionDurationBd21_60: "21-60 min",
+            optionDurationBd61_90: "61-90 min",
+            optionDurationBd91_120: "91-120 min",
+            optionDurationBd121_160: "121-160 min",
+            optionDurationBd161_200: "161-200 min",
+            optionDurationBd201Plus: "> 201 min",
+            labelOrder: "Order:",
+            optionOrderTimeDesc: "Time descending",
+            optionOrderTimeAsc: "Time ascending",
+            optionOrderNameAsc: "Name A-Z",
+            optionOrderNameDesc: "Name Z-A",
+            optionOrderRandom: "Random",
+            placeholderSearch: "Type what you want to search...",
+            buttonSearch: "Search",
+            totalLabel: "TOTAL",
+            durationLabel: "Duration",
+            watchButton: "Watch",
+            labelQuality: "Quality:",
+            optionQualityAuto: "Auto (best)",
+            buttonDownload: "Download video",
+            preparingDownload: "Preparing...",
+            downloadErrorGeneric: "Could not generate the download link.",
+            downloadStreamingOnly: "Download not available: this video is streaming-only (m3u8/DASH).",
+            downloadFail: "Failed to get download link.",
+            loadingVideo: "Loading video...",
+            searchError: "Error searching videos"
+        },
+        es: {
+            appTitle: "Búsqueda de Videos",
+            labelLanguage: "Idioma:",
+            optionLangPt: "Portugués (BR)",
+            optionLangEn: "Inglés (EE.UU.)",
+            optionLangEs: "Español",
+            labelSource: "Fuente:",
+            optionSourceApi: "API",
+            optionSourceDb: "Base de datos",
+            labelDurationApi: "Duración:",
+            optionDurationAny: "Cualquier duración",
+            optionDurationLong: "Largo",
+            optionDurationShort: "Corto",
+            labelHd: "HD:",
+            labelDurationBd: "Duración:",
+            optionDurationBdAll: "Todas",
+            optionDurationBd0_20: "0-20 min",
+            optionDurationBd21_60: "21-60 min",
+            optionDurationBd61_90: "61-90 min",
+            optionDurationBd91_120: "91-120 min",
+            optionDurationBd121_160: "121-160 min",
+            optionDurationBd161_200: "161-200 min",
+            optionDurationBd201Plus: "> 201 min",
+            labelOrder: "Orden:",
+            optionOrderTimeDesc: "Tiempo descendente",
+            optionOrderTimeAsc: "Tiempo ascendente",
+            optionOrderNameAsc: "Nombre A-Z",
+            optionOrderNameDesc: "Nombre Z-A",
+            optionOrderRandom: "Aleatorio",
+            placeholderSearch: "Escribe lo que quieres buscar...",
+            buttonSearch: "Buscar",
+            totalLabel: "TOTAL",
+            durationLabel: "Duración",
+            watchButton: "Ver",
+            labelQuality: "Calidad:",
+            optionQualityAuto: "Auto (mejor)",
+            buttonDownload: "Descargar video",
+            preparingDownload: "Preparando...",
+            downloadErrorGeneric: "No fue posible generar el enlace de descarga.",
+            downloadStreamingOnly: "Descarga no disponible: este video solo tiene streaming (m3u8/DASH).",
+            downloadFail: "Fallo al obtener el enlace de descarga.",
+            loadingVideo: "Cargando video...",
+            searchError: "Error al buscar videos"
+        }
+    };
+
+    let currentLang = localStorage.getItem("lang") || "pt";
+    if (!translations[currentLang]) currentLang = "pt";
 
     let offset = 0;
     let loading = false;
@@ -15,6 +153,86 @@ document.addEventListener("DOMContentLoaded", function () {
     const idsExibidos = new Set();
     let currentVideoId = null;
     let currentVideoTitle = "";
+
+    function t(key) {
+        if (translations[currentLang] && translations[currentLang][key]) {
+            return translations[currentLang][key];
+        }
+        if (translations.pt && translations.pt[key]) {
+            return translations.pt[key];
+        }
+        return key;
+    }
+
+    function refreshVideoCardsLanguage() {
+        const durationLabel = t("durationLabel");
+        document.querySelectorAll(".video-duration").forEach(el => {
+            const durationValue = el.getAttribute("data-duration-value") || "";
+            el.textContent = durationValue ? `${durationLabel}: ${durationValue}` : durationLabel;
+        });
+
+        document.querySelectorAll(".watch-btn").forEach(btn => {
+            btn.textContent = t("watchButton");
+        });
+
+        if (downloadBtn && !downloadBtn.disabled) {
+            downloadBtn.textContent = t("buttonDownload");
+        }
+    }
+
+    function updateTotalResults(newCount) {
+        if (typeof newCount === "number") {
+            totalCount = newCount;
+        }
+        if (totalResults) {
+            totalResults.innerHTML = `${t("totalLabel")}: <b>${totalCount}</b>`;
+        }
+    }
+
+    function applyTranslations() {
+        document.documentElement.lang = currentLang;
+        document.title = t("appTitle");
+
+        document.querySelectorAll("[data-i18n]").forEach(el => {
+            const key = el.dataset.i18n;
+            if (key) {
+                el.textContent = t(key);
+            }
+        });
+
+        document.querySelectorAll("[data-i18n-placeholder]").forEach(el => {
+            const key = el.dataset.i18nPlaceholder;
+            if (key) {
+                el.placeholder = t(key);
+            }
+        });
+
+        refreshVideoCardsLanguage();
+        updateTotalResults();
+    }
+
+    function updateLangButtonsUI() {
+        langOptions.forEach(btn => {
+            const lang = btn.dataset.lang;
+            btn.classList.toggle("active", lang === currentLang);
+        });
+    }
+
+    function setLanguage(lang) {
+        currentLang = translations[lang] ? lang : "pt";
+        localStorage.setItem("lang", currentLang);
+        updateLangButtonsUI();
+        applyTranslations();
+    }
+
+    if (langOptions.length) {
+        langOptions.forEach(btn => {
+            btn.addEventListener("click", () => setLanguage(btn.dataset.lang));
+        });
+    }
+
+    updateLangButtonsUI();
+    applyTranslations();
 
     function coletarFiltros() {
         const fonte = document.getElementById("fonte").value;
@@ -37,15 +255,24 @@ document.addEventListener("DOMContentLoaded", function () {
         document.getElementById("filters-api").style.display = fonte === "API" ? "flex" : "none";
         document.getElementById("filters-bd").style.display = fonte === "BD" ? "flex" : "none";
     }
-    document.getElementById("fonte").addEventListener("change", alternarFiltros);
+
+    document.getElementById("fonte").addEventListener("change", () => {
+        alternarFiltros();
+        const queryInput = document.getElementById("query").value.trim();
+        const filtros = coletarFiltros();
+        buscarVideos(queryInput, true, filtros);
+    });
     alternarFiltros();
 
     function abrirModal(videoId, title) {
         currentVideoId = videoId;
         currentVideoTitle = title || "";
-        modalTitle.innerText = title;
+        modalTitle.innerText = title || t("loadingVideo");
         videoFrame.src = `https://ok.ru/videoembed/${videoId}`;
         modal.style.display = "flex";
+        if (downloadBtn && !downloadBtn.disabled) {
+            downloadBtn.textContent = t("buttonDownload");
+        }
         history.pushState(null, "", `?video=${videoId}`);
     }
 
@@ -60,20 +287,20 @@ document.addEventListener("DOMContentLoaded", function () {
     function solicitarDownload(videoId, title) {
         if (!videoId || !downloadBtn) return;
         downloadBtn.disabled = true;
-        downloadBtn.textContent = "Preparando...";
+        downloadBtn.textContent = t("preparingDownload");
         const qual = document.getElementById("qualitySelect")?.value || "";
         const url = qual ? `/download/${encodeURIComponent(videoId)}?h=${qual}` : `/download/${encodeURIComponent(videoId)}`;
         fetch(url)
             .then(res => res.json().then(data => ({ ok: res.ok, data })))
             .then(({ ok, data }) => {
                 downloadBtn.disabled = false;
-                downloadBtn.textContent = "Baixar vídeo";
+                downloadBtn.textContent = t("buttonDownload");
                 if (!ok || !data || data.error || !data.url) {
-                    alert(data && data.error ? data.error : "Não foi possível gerar o link de download.");
+                    alert(data && data.error ? data.error : t("downloadErrorGeneric"));
                     return;
                 }
                 if (data.streaming) {
-                    alert("Download não disponível: este vídeo só tem streaming (m3u8/DASH).");
+                    alert(t("downloadStreamingOnly"));
                     return;
                 }
                 const a = document.createElement("a");
@@ -86,8 +313,8 @@ document.addEventListener("DOMContentLoaded", function () {
             })
             .catch(() => {
                 downloadBtn.disabled = false;
-                downloadBtn.textContent = "Baixar vídeo";
-                alert("Falha ao obter link de download.");
+                downloadBtn.textContent = t("buttonDownload");
+                alert(t("downloadFail"));
             });
     }
 
@@ -96,12 +323,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
         const videoCard = document.createElement("div");
         videoCard.classList.add("video-card");
+        const durationText = t("durationLabel");
+        const watchText = t("watchButton");
         videoCard.innerHTML = `
             <img src="${video.thumbnail}" alt="${video.title}" class="video-thumbnail">
             <h3 class="video-title">${video.title}</h3>
-            <p class="video-duration">Duração: ${video.duration}</p>
+            <p class="video-duration" data-duration-value="${video.duration}">${durationText}: ${video.duration}</p>
             <div class="card-actions">
-                <button class="watch-btn" data-id="${video.id}" data-title="${video.title}">Assistir</button>
+                <button class="watch-btn" data-id="${video.id}" data-title="${video.title}">${watchText}</button>
             </div>
         `;
 
@@ -133,8 +362,7 @@ document.addEventListener("DOMContentLoaded", function () {
             .then(response => response.json())
             .then(data => {
                 if (novaBusca) {
-                    totalCount = data.totalCount;
-                    totalResults.innerHTML = `TOTAL: <b>${totalCount}</b>`;
+                    updateTotalResults(data.totalCount);
                 }
 
                 data.videos.forEach(adicionarVideoCard);
@@ -143,7 +371,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 loading = false;
             })
             .catch(error => {
-                console.error("Erro ao buscar vídeos:", error);
+                console.error(t("searchError"), error);
                 loading = false;
             });
     }
@@ -162,12 +390,6 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     document.getElementById("hd").addEventListener("change", () => {
-        const queryInput = document.getElementById("query").value.trim();
-        const filtros = coletarFiltros();
-        buscarVideos(queryInput, true, filtros);
-    });
-
-    document.getElementById("fonte").addEventListener("change", () => {
         const queryInput = document.getElementById("query").value.trim();
         const filtros = coletarFiltros();
         buscarVideos(queryInput, true, filtros);
@@ -199,16 +421,6 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    toggleThemeBtn.addEventListener("change", function () {
-        document.body.classList.toggle("light-mode");
-        localStorage.setItem("theme", document.body.classList.contains("light-mode") ? "light" : "dark");
-    });
-
-    if (localStorage.getItem("theme") === "light") {
-        document.body.classList.add("light-mode");
-        toggleThemeBtn.checked = true;
-    }
-
     if (downloadBtn) {
         downloadBtn.addEventListener("click", () => solicitarDownload(currentVideoId, currentVideoTitle));
     }
@@ -216,7 +428,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const urlParams = new URLSearchParams(window.location.search);
     const videoIdParam = urlParams.get("video");
     if (videoIdParam) {
-        abrirModal(videoIdParam, "Carregando vídeo...");
+        abrirModal(videoIdParam, t("loadingVideo"));
     } else {
         modal.style.display = "none";
     }

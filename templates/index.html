@@ -18,64 +18,71 @@
         <!-- CONTROLES à direita -->
         <div class="controls">
           <div class="toggle-container">
-            <span class="icon">🌙</span>
+            <span class="icon" aria-hidden="true">🌙</span>
             <label class="toggle-switch">
               <input type="checkbox" id="toggle-theme">
               <span class="slider"></span>
             </label>
-            <span class="icon">🌞</span>
+            <span class="icon" aria-hidden="true">☀️</span>
+          </div>
+          <div class="language-switch" role="group" aria-label="Idioma">
+            <button type="button" class="lang-option" data-lang="pt">PT</button>
+            <span class="lang-divider">|</span>
+            <button type="button" class="lang-option" data-lang="en">EN</button>
+            <span class="lang-divider">|</span>
+            <button type="button" class="lang-option" data-lang="es">ES</button>
           </div>
       
           <form id="searchForm">
-            <label for="fonte">Fonte:</label>
+            <label for="fonte" data-i18n="labelSource">Fonte:</label>
             <select id="fonte" name="fonte">
-              <option value="API">API</option>  
-              <option value="BD">Banco</option>
+              <option value="API" data-i18n="optionSourceApi">API</option>  
+              <option value="BD" data-i18n="optionSourceDb">Banco</option>
             </select>
             
             <!-- filtros só da API -->
             <div id="filters-api" class="filters">
-              <label for="duration">Duração:</label>
+              <label for="duration" data-i18n="labelDurationApi">Duração:</label>
               <select id="duration" name="duration">
-                <option value="">Qualquer duração</option>
-                <option value="LONG">Longo</option>
-                <option value="SHORT">Curto</option>
+                <option value="" data-i18n="optionDurationAny">Qualquer duração</option>
+                <option value="LONG" data-i18n="optionDurationLong">Longo</option>
+                <option value="SHORT" data-i18n="optionDurationShort">Curto</option>
               </select>
 
-              <label for="hd">HD:</label>
+              <label for="hd" data-i18n="labelHd">HD:</label>
               <input type="checkbox" id="hd" name="hd">
             </div>
 
             <!-- filtros só do Banco -->
             <div id="filters-bd" class="filters" style="display:none">
-              <label for="duration_bd">Duração:</label>
+              <label for="duration_bd" data-i18n="labelDurationBd">Duração:</label>
               <select id="duration_bd" name="duration_bd">
-                <option value="">Todas</option>
-                <option value="0-20">0-20 min</option>
-                <option value="21-60">21-60 min</option>
-                <option value="61-90">61-90 min</option>
-                <option value="91-120">91-120 min</option>
-                <option value="121-160">121-160 min</option>
-                <option value="161-200">161-200 min</option>
-                <option value="201+">> 201 min</option>
+                <option value="" data-i18n="optionDurationBdAll">Todas</option>
+                <option value="0-20" data-i18n="optionDurationBd0_20">0-20 min</option>
+                <option value="21-60" data-i18n="optionDurationBd21_60">21-60 min</option>
+                <option value="61-90" data-i18n="optionDurationBd61_90">61-90 min</option>
+                <option value="91-120" data-i18n="optionDurationBd91_120">91-120 min</option>
+                <option value="121-160" data-i18n="optionDurationBd121_160">121-160 min</option>
+                <option value="161-200" data-i18n="optionDurationBd161_200">161-200 min</option>
+                <option value="201+" data-i18n="optionDurationBd201Plus">> 201 min</option>
               </select>
 
-              <label for="order_bd">Ordem:</label>
+              <label for="order_bd" data-i18n="labelOrder">Ordem:</label>
               <select id="order_bd" name="order_bd">
-                <option value="tempo_desc">Tempo ↓</option>
-                <option value="tempo_asc">Tempo ↑</option>
-                <option value="nome_asc">Nome A-Z</option>
-                <option value="nome_desc">Nome Z-A</option>
-                <option value="random">Aleatório</option>
+                <option value="tempo_desc" data-i18n="optionOrderTimeDesc">Tempo decrescente</option>
+                <option value="tempo_asc" data-i18n="optionOrderTimeAsc">Tempo crescente</option>
+                <option value="nome_asc" data-i18n="optionOrderNameAsc">Nome A-Z</option>
+                <option value="nome_desc" data-i18n="optionOrderNameDesc">Nome Z-A</option>
+                <option value="random" data-i18n="optionOrderRandom">Aleatório</option>
               </select>
             </div>
       
-            <input type="text" id="query" placeholder="Digite o que deseja buscar..." required>
-            <button type="submit">Buscar</button>
+            <input type="text" id="query" data-i18n-placeholder="placeholderSearch" placeholder="Digite o que deseja buscar..." required>
+            <button type="submit" data-i18n="buttonSearch">Buscar</button>
           </form>
         </div>
     </div>
-    <div><h5 id="totalResults">TOTAL: <b>0</b></h5></div>
+    <div><h5 id="totalResults"></h5></div>
     <div id="videoResults"></div>
 
     <!-- Modal -->
@@ -85,15 +92,15 @@
             <h4 id="modalTitle"></h4>
             <iframe id="videoFrame" frameborder="0" allowfullscreen></iframe>
             <div class="modal-actions">
-                <label for="qualitySelect">Qualidade:</label>
+                <label for="qualitySelect" data-i18n="labelQuality">Qualidade:</label>
                 <select id="qualitySelect">
-                    <option value="">Auto (melhor)</option>
+                    <option value="" data-i18n="optionQualityAuto">Auto (melhor)</option>
                     <option value="1080">1080p</option>
                     <option value="720">720p</option>
                     <option value="480">480p</option>
                     <option value="360">360p</option>
                 </select>
-                <button id="downloadBtn" class="btn-primary">Baixar vídeo</button>
+                <button id="downloadBtn" class="btn-primary" data-i18n="buttonDownload">Baixar vídeo</button>
             </div>
         </div>
     </div>
