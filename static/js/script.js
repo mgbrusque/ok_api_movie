@@ -144,13 +144,104 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     };
 
+    // Helpers para compatibilidade em navegadores mais antigos (ex.: WebOS).
+    function createIdStore() {
+        if (typeof Set !== "undefined") {
+            return new Set();
+        }
+        return {
+            _data: {},
+            add(id) { this._data[id] = true; },
+            has(id) { return !!this._data[id]; },
+            clear() { this._data = {}; }
+        };
+    }
+
+    const hasNativeFetch = typeof window.fetch === "function";
+    function safeFetch(url, options) {
+        if (hasNativeFetch) {
+            return window.fetch(url, options);
+        }
+        return new Promise((resolve, reject) => {
+            try {
+                const xhr = new XMLHttpRequest();
+                const method = (options && options.method) ? options.method : "GET";
+                xhr.open(method, url);
+                if (options && options.headers) {
+                    Object.keys(options.headers).forEach(key => {
+                        xhr.setRequestHeader(key, options.headers[key]);
+                    });
+                }
+                xhr.onload = function () {
+                    const text = xhr.responseText || "";
+                    resolve({
+                        ok: xhr.status >= 200 && xhr.status < 300,
+                        status: xhr.status,
+                        statusText: xhr.statusText,
+                        text: () => Promise.resolve(text),
+                        json: () => Promise.resolve().then(() => JSON.parse(text))
+                    });
+                };
+                xhr.onerror = function () {
+                    reject(new Error("Network error"));
+                };
+                xhr.send(options && options.body ? options.body : null);
+            } catch (err) {
+                reject(err);
+            }
+        });
+    }
+
+    function buildFormBody(obj) {
+        if (typeof URLSearchParams !== "undefined") {
+            const params = new URLSearchParams();
+            Object.keys(obj).forEach(key => {
+                const value = obj[key];
+                if (value !== undefined && value !== null) {
+                    params.append(key, value);
+                }
+            });
+            return params.toString();
+        }
+        const pairs = [];
+        Object.keys(obj).forEach(key => {
+            const value = obj[key];
+            if (value !== undefined && value !== null) {
+                pairs.push(encodeURIComponent(key) + "=" + encodeURIComponent(value));
+            }
+        });
+        return pairs.join("&");
+    }
+
+    function getQueryParam(name) {
+        if (typeof URLSearchParams !== "undefined") {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(name);
+        }
+        const search = window.location.search ? window.location.search.replace(/^\?/, "") : "";
+        const parts = search.split("&");
+        for (let i = 0; i < parts.length; i++) {
+            const segment = parts[i].split("=");
+            if (decodeURIComponent(segment[0]) === name) {
+                return decodeURIComponent(segment[1] || "");
+            }
+        }
+        return null;
+    }
+
+    function safePushState(url) {
+        if (window.history && typeof window.history.pushState === "function") {
+            history.pushState(null, "", url);
+        }
+    }
+
     let currentLang = localStorage.getItem("lang") || "pt";
     if (!translations[currentLang]) currentLang = "pt";
 
     let offset = 0;
     let loading = false;
     let totalCount = 0;
-    const idsExibidos = new Set();
+    const idsExibidos = createIdStore();
     let currentVideoId = null;
     let currentVideoTitle = "";
 
@@ -273,7 +364,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (downloadBtn && !downloadBtn.disabled) {
             downloadBtn.textContent = t("buttonDownload");
         }
-        history.pushState(null, "", `?video=${videoId}`);
+        safePushState(`?video=${videoId}`);
     }
 
     function limparModal() {
@@ -281,16 +372,17 @@ document.addEventListener("DOMContentLoaded", function () {
         videoFrame.src = "";
         currentVideoId = null;
         currentVideoTitle = "";
-        history.pushState(null, "", window.location.pathname);
+        safePushState(window.location.pathname);
     }
 
     function solicitarDownload(videoId, title) {
         if (!videoId || !downloadBtn) return;
         downloadBtn.disabled = true;
         downloadBtn.textContent = t("preparingDownload");
-        const qual = document.getElementById("qualitySelect")?.value || "";
+        const qualityEl = document.getElementById("qualitySelect");
+        const qual = qualityEl ? qualityEl.value : "";
         const url = qual ? `/download/${encodeURIComponent(videoId)}?h=${qual}` : `/download/${encodeURIComponent(videoId)}`;
-        fetch(url)
+        safeFetch(url)
             .then(res => res.json().then(data => ({ ok: res.ok, data })))
             .then(({ ok, data }) => {
                 downloadBtn.disabled = false;
@@ -351,12 +443,17 @@ document.addEventListener("DOMContentLoaded", function () {
             videoResults.innerHTML = "";
         }
 
-        const params = new URLSearchParams({ query: queryText, offset, fonte: filtros.fonte });
-        Object.entries(filtros).forEach(([k, v]) => { if (k !== "fonte" && v !== "") params.append(k, v); });
+        const paramsObj = { query: queryText, offset, fonte: filtros.fonte };
+        Object.entries(filtros).forEach(([k, v]) => {
+            if (k !== "fonte" && v !== "") {
+                paramsObj[k] = v;
+            }
+        });
+        const body = buildFormBody(paramsObj);
 
-        fetch("/buscar", {
+        safeFetch("/buscar", {
             method: "POST",
-            body: params,
+            body: body,
             headers: { "Content-Type": "application/x-www-form-urlencoded" }
         })
             .then(response => response.json())
@@ -425,8 +522,7 @@ document.addEventListener("DOMContentLoaded", function () {
         downloadBtn.addEventListener("click", () => solicitarDownload(currentVideoId, currentVideoTitle));
     }
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const videoIdParam = urlParams.get("video");
+    const videoIdParam = getQueryParam("video");
     if (videoIdParam) {
         abrirModal(videoIdParam, t("loadingVideo"));
     } else {
