@@ -157,6 +157,15 @@
     border-radius: 6px 6px 0 0;
   }
 
+  .video-card .video-thumbnail {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    border-radius: 6px 6px 0 0;
+    background: var(--input-bg);
+    display: block;
+  }
+
   .video-card .duration-badge {
     position: absolute; bottom: 6px; right: 6px;
     background: rgba(0, 0, 0, 0.75); color: #fff;
@@ -178,22 +187,25 @@
   /*--------------------------
     Modal
   ---------------------------*/
-  .modal {
-    position: fixed; inset: 0; z-index: 1000;
-    background: rgba(0, 0, 0, 0.6);
-    display: none; align-items: center; justify-content: center;
-    padding: 1rem;
-  }
-  .modal.open { display: flex; }
-  
-  .modal-content {
-    background: var(--card-bg); color: var(--text-color);
-    width: 100%; max-width: 840px;
-    border-radius: 10px; overflow: hidden;
-    box-shadow: 0 4px 10px var(--card-shadow);
-    position: relative;
-    animation: zoom 0.25s ease-out;
-  }
+.modal {
+  position: fixed; inset: 0; z-index: 1000;
+  background: rgba(0, 0, 0, 0.6);
+  display: none; align-items: center; justify-content: center;
+  padding: 1rem;
+}
+.modal.open { display: flex; }
+
+.modal-content {
+  background: var(--card-bg); color: var(--text-color);
+  width: 100%; max-width: 900px;
+  border-radius: 10px; overflow: hidden;
+  box-shadow: 0 4px 10px var(--card-shadow);
+  position: relative;
+  animation: zoom 0.25s ease-out;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+}
   
   @keyframes zoom {
     from { transform: scale(0.9); opacity: 0; }
@@ -206,23 +218,116 @@
     font-size: 1.1rem; background: var(--input-bg);
   }
   
-  .modal-content iframe { width: 100%; height: 480px; border: none; display: block; }
-  
+.modal-body {
+  flex: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0 1rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.modal-content iframe { width: 100%; height: 420px; border: none; display: block; border-radius: 8px; }
+
   .close {
     position: absolute; top: 8px; right: 12px;
     font-size: 1.6rem; cursor: pointer;
     color: var(--text-color); opacity: 0.7;
   }
   .close:hover { opacity: 1; }
-  
-  /*--------------------------
-    Responsividade
-  ---------------------------*/
-  @media (max-width: 768px) {
-    #searchContainer { flex-direction: column; align-items: flex-start; }
-    #videoResults   { grid-template-columns: 1fr; }  /* um card por linha */
-    .modal-content iframe { height: 260px; }
+
+  /* IMDb info */
+  .imdb-loading {
+    padding: 0.75rem 1rem 0;
+    font-size: 0.95rem;
+    opacity: 0.8;
   }
+
+.imdb-info {
+  display: grid;
+  grid-template-columns: 130px 1fr;
+  gap: 0.9rem;
+  padding: 0.75rem;
+  background: var(--input-bg);
+  border-radius: 8px;
+  align-items: start;
+}
+
+.imdb-poster-wrap {
+  width: 100%;
+  max-width: 130px;
+  max-height: 210px;
+  aspect-ratio: 2 / 3;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+}
+
+.imdb-poster-wrap img {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  display: block;
+}
+
+  .imdb-meta h5 {
+    margin: 0;
+    font-size: 1.05rem;
+  }
+
+  .imdb-headline {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .imdb-score {
+    background: #f5c518;
+    color: #000;
+    padding: 0.2rem 0.55rem;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 0.9rem;
+  }
+
+  .imdb-genres {
+    font-size: 0.9rem;
+    opacity: 0.85;
+    margin-bottom: 0.35rem;
+  }
+
+.imdb-synopsis {
+  margin: 0;
+  line-height: 1.5;
+  font-size: 0.95rem;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.modal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  padding: 0.75rem 0 0;
+}
+
+/*--------------------------
+  Responsividade
+---------------------------*/
+@media (max-width: 768px) {
+  #searchContainer { flex-direction: column; align-items: flex-start; }
+  #videoResults   { grid-template-columns: 1fr; }  /* um card por linha */
+  .modal-content { max-height: 92vh; }
+  .modal-content iframe { height: 260px; }
+  .modal-body { padding: 0.75rem; }
+  .modal-actions { gap: 0.35rem; }
+  .imdb-info { grid-template-columns: 110px 1fr; }
+  .imdb-poster-wrap { max-width: 110px; margin: 0; aspect-ratio: 2 / 3; max-height: 180px; }
+  .imdb-headline { flex-direction: column; align-items: flex-start; gap: 0.25rem; }
+}
   
   /* =========================================
    BOTÃO “ASSISTIR” – preenche a base do card
@@ -328,7 +433,7 @@
       grid-template-columns: 1fr;
       gap: 1rem;
     }
-  
+
     /* deixa título um pouco menor */
     .video-card h3{
       font-size: .9rem;

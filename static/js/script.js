@@ -8,6 +8,14 @@ document.addEventListener("DOMContentLoaded", function () {
     const closeBtn = document.querySelector(".close");
     const downloadBtn = document.getElementById("downloadBtn");
     const langOptions = document.querySelectorAll(".lang-option");
+    const imdbInfo = document.getElementById("imdbInfo");
+    const imdbPoster = document.getElementById("imdbPoster");
+    const imdbTitle = document.getElementById("imdbTitle");
+    const imdbGenres = document.getElementById("imdbGenres");
+    const imdbScore = document.getElementById("imdbScore");
+    const imdbSynopsis = document.getElementById("imdbSynopsis");
+    const imdbLoading = document.getElementById("imdbLoading");
+    const FALLBACK_THUMB = "https://media.istockphoto.com/id/1306969366/pt/vetorial/no-video-camera-icon-no-video-recording-vector.jpg?s=612x612&w=0&k=20&c=-bxPuvBGcmtH048X8QoQ3mQbIlxnSnItlQKbCeOpkcI=";
 
     const translations = {
         pt: {
@@ -52,7 +60,9 @@ document.addEventListener("DOMContentLoaded", function () {
             downloadStreamingOnly: "Download não disponível: este vídeo só tem streaming (m3u8/DASH).",
             downloadFail: "Falha ao obter link de download.",
             loadingVideo: "Carregando vídeo...",
-            searchError: "Erro ao buscar vídeos"
+            searchError: "Erro ao buscar vídeos",
+            imdbLoading: "Buscando detalhes no IMDb...",
+            imdbNotFound: "Nenhuma informação do IMDb agora."
         },
         en: {
             appTitle: "Video Search",
@@ -96,7 +106,9 @@ document.addEventListener("DOMContentLoaded", function () {
             downloadStreamingOnly: "Download not available: this video is streaming-only (m3u8/DASH).",
             downloadFail: "Failed to get download link.",
             loadingVideo: "Loading video...",
-            searchError: "Error searching videos"
+            searchError: "Error searching videos",
+            imdbLoading: "Fetching IMDb details...",
+            imdbNotFound: "No IMDb info found."
         },
         es: {
             appTitle: "Búsqueda de Videos",
@@ -140,7 +152,9 @@ document.addEventListener("DOMContentLoaded", function () {
             downloadStreamingOnly: "Descarga no disponible: este video solo tiene streaming (m3u8/DASH).",
             downloadFail: "Fallo al obtener el enlace de descarga.",
             loadingVideo: "Cargando video...",
-            searchError: "Error al buscar videos"
+            searchError: "Error al buscar videos",
+            imdbLoading: "Buscando detalles en IMDb...",
+            imdbNotFound: "No hay información de IMDb."
         }
     };
 
@@ -155,6 +169,15 @@ document.addEventListener("DOMContentLoaded", function () {
             has(id) { return !!this._data[id]; },
             clear() { this._data = {}; }
         };
+    }
+
+    function applyImgFallback(imgEl) {
+        if (!imgEl) return;
+        imgEl.addEventListener("error", () => {
+            if (imgEl.dataset.fallbackApplied === "1") return;
+            imgEl.dataset.fallbackApplied = "1";
+            imgEl.src = FALLBACK_THUMB;
+        });
     }
 
     const hasNativeFetch = typeof window.fetch === "function";
@@ -271,12 +294,112 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
+    function resetImdbUI() {
+        if (!imdbLoading || !imdbInfo) return;
+        imdbLoading.style.display = "block";
+        imdbLoading.dataset.state = "loading";
+        imdbLoading.textContent = t("imdbLoading");
+        imdbInfo.style.display = "none";
+        if (imdbPoster) {
+            imdbPoster.src = "";
+            imdbPoster.style.display = "none";
+        }
+        if (imdbTitle) imdbTitle.textContent = "";
+        if (imdbGenres) imdbGenres.textContent = "";
+        if (imdbScore) {
+            imdbScore.textContent = "";
+            imdbScore.style.display = "none";
+            imdbScore.dataset.score = "";
+        }
+        if (imdbSynopsis) imdbSynopsis.textContent = "";
+    }
+
+    function showImdbNotFound() {
+        if (!imdbLoading || !imdbInfo) return;
+        imdbLoading.style.display = "none";
+        imdbLoading.dataset.state = "empty";
+        imdbInfo.style.display = "none";
+    }
+
+    function renderImdbInfo(data) {
+        if (!imdbLoading || !imdbInfo) return;
+        const hasContent = data && !data.empty && (data.titulo || data.sinopse || data.imagem || data.nota || data.generos);
+        if (!hasContent) {
+            showImdbNotFound();
+            return;
+        }
+        imdbLoading.style.display = "none";
+        imdbLoading.dataset.state = "done";
+        imdbInfo.style.display = "grid";
+        if ((!currentVideoTitle || modalTitle.innerText === t("loadingVideo")) && data.titulo) {
+            currentVideoTitle = data.titulo;
+            modalTitle.innerText = data.titulo;
+        }
+        if (imdbTitle) imdbTitle.textContent = data.titulo || currentVideoTitle || "";
+        if (imdbGenres) imdbGenres.textContent = data.generos || "";
+        if (imdbScore) {
+            const scoreVal = data.nota ? `IMDb ${data.nota}` : "";
+            imdbScore.textContent = scoreVal;
+            imdbScore.dataset.score = scoreVal;
+            imdbScore.style.display = scoreVal ? "inline-flex" : "none";
+        }
+        if (imdbPoster) {
+            if (data.imagem) {
+                imdbPoster.src = data.imagem;
+                imdbPoster.style.display = "block";
+            } else {
+                imdbPoster.style.display = "none";
+                imdbPoster.removeAttribute("src");
+            }
+            applyImgFallback(imdbPoster);
+        }
+        if (imdbSynopsis) imdbSynopsis.textContent = data.sinopse || "";
+    }
+
+    function carregarInfoImdb(videoId, title, thumb) {
+        if (!imdbLoading || !imdbInfo) return;
+        resetImdbUI();
+        if (!videoId) {
+            showImdbNotFound();
+            return;
+        }
+        const params = new URLSearchParams();
+        if (title) params.append("title", title);
+        if (thumb) params.append("thumb", thumb);
+        if (currentLang) params.append("lang", currentLang);
+        console.log("[info] fetching imdb", { videoId, title, thumb, lang: currentLang });
+        safeFetch(`/info/${encodeURIComponent(videoId)}?${params.toString()}`)
+            .then(res => res.json().then(data => ({ ok: res.ok, data })))
+            .then(({ ok, data }) => {
+                console.log("[info] imdb response", { ok, data });
+                if (!ok || !data) {
+                    showImdbNotFound();
+                    return;
+                }
+                renderImdbInfo(data);
+            })
+            .catch(() => {
+                console.log("[info] imdb fetch error");
+                showImdbNotFound();
+            });
+    }
+
     function updateTotalResults(newCount) {
         if (typeof newCount === "number") {
             totalCount = newCount;
         }
         if (totalResults) {
             totalResults.innerHTML = `${t("totalLabel")}: <b>${totalCount}</b>`;
+        }
+    }
+
+    function refreshImdbTexts() {
+        if (!imdbLoading) return;
+        const state = imdbLoading.dataset.state;
+        if (state === "loading") {
+            imdbLoading.textContent = t("imdbLoading");
+        } else if (state === "empty") {
+            imdbLoading.textContent = t("imdbNotFound");
         }
     }
 
@@ -300,6 +423,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         refreshVideoCardsLanguage();
         updateTotalResults();
+        refreshImdbTexts();
     }
 
     function updateLangButtonsUI() {
@@ -355,15 +479,17 @@ document.addEventListener("DOMContentLoaded", function () {
     });
     alternarFiltros();
 
-    function abrirModal(videoId, title) {
+    function abrirModal(videoId, title, thumb) {
         currentVideoId = videoId;
         currentVideoTitle = title || "";
-        modalTitle.innerText = title || t("loadingVideo");
+        const safeTitle = title || "";
+        modalTitle.innerText = safeTitle || t("loadingVideo");
         videoFrame.src = `https://ok.ru/videoembed/${videoId}`;
         modal.style.display = "flex";
         if (downloadBtn && !downloadBtn.disabled) {
             downloadBtn.textContent = t("buttonDownload");
         }
+        carregarInfoImdb(videoId, safeTitle, thumb);
         safePushState(`?video=${videoId}`);
     }
 
@@ -372,6 +498,7 @@ document.addEventListener("DOMContentLoaded", function () {
         videoFrame.src = "";
         currentVideoId = null;
         currentVideoTitle = "";
+        resetImdbUI();
         safePushState(window.location.pathname);
     }
 
@@ -417,17 +544,21 @@ document.addEventListener("DOMContentLoaded", function () {
         videoCard.classList.add("video-card");
         const durationText = t("durationLabel");
         const watchText = t("watchButton");
+        const thumb = video.thumbnail || FALLBACK_THUMB;
         videoCard.innerHTML = `
-            <img src="${video.thumbnail}" alt="${video.title}" class="video-thumbnail">
+            <img src="${thumb}" alt="${video.title}" class="video-thumbnail">
             <h3 class="video-title">${video.title}</h3>
             <p class="video-duration" data-duration-value="${video.duration}">${durationText}: ${video.duration}</p>
             <div class="card-actions">
-                <button class="watch-btn" data-id="${video.id}" data-title="${video.title}">${watchText}</button>
+                <button class="watch-btn" data-id="${video.id}" data-title="${video.title}" data-thumb="${thumb}">${watchText}</button>
             </div>
         `;
 
+        const thumbImg = videoCard.querySelector(".video-thumbnail");
+        applyImgFallback(thumbImg);
+
         const watchBtn = videoCard.querySelector(".watch-btn");
-        watchBtn.addEventListener("click", () => abrirModal(video.id, video.title));
+        watchBtn.addEventListener("click", () => abrirModal(video.id, video.title, thumb));
 
         videoResults.appendChild(videoCard);
         idsExibidos.add(video.id);
@@ -524,7 +655,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const videoIdParam = getQueryParam("video");
     if (videoIdParam) {
-        abrirModal(videoIdParam, t("loadingVideo"));
+        abrirModal(videoIdParam, "", "");
     } else {
         modal.style.display = "none";
     }

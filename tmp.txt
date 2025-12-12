@@ -1,0 +1,10 @@
+    transform: translateY(-4px);
+    box-shadow: 0 4px 12px var(--card-shadow);
+  }  
+  
+  /* thumb */
+  /* Imagem: altura máxima fixa */
+  .video-card .thumb-wrapper img {
+    max-height: 160px;
+    width: 100%;
+    object-fit: cover;

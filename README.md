@@ -1,94 +1,75 @@
 # OK API Movie
 
-Busca e download de videos do OK.ru via:
-- **Scraper** (Selenium) que autentica com conta OK.ru, percorre perfis e grava metadados no Postgres.
-- **Busca por API** (endpoint web oficial) sem precisar de login nem banco.
-- **Frontend Flask** para consultar videos (API ou banco) e assistir/baixar com yt-dlp.
+Busca vídeos do OK.ru (via API oficial ou banco próprio), toca no navegador e exibe metadados localizados usando TMDB com fallback IMDb.
 
-### Por que ainda usar o scraper?
-- Controle total de quais perfis raspar (lista em `server` no banco).
-- Alcance de videos que estao privados/restritos em perfis especificos.
-- API web pode omitir conteudo privado; o scraper usa sua sessao autenticada.
+## Funcionalidades
+- Busca direta na API do OK.ru (não precisa login/banco) ou no Postgres raspado pelo scraper.
+- Player embutido com seleção de qualidade e botão de download (yt-dlp).
+- Metadados: título/sinopse/gêneros/nota em `pt-BR | es-ES | en-US` via TMDB; fallback IMDb em inglês quando TMDB não encontrar.
+- Limpeza de títulos de release (guessit + heurísticas PT-BR) para acertar a busca por ano/título.
+- Cache em Postgres (`infofilmes`) para não refazer consultas.
+- Front responsivo (tema claro/escuro, idiomas, filtros, fallback de imagem para thumbs quebradas).
 
 ## Requisitos
 - Python 3.11+
-- Google Chrome/Chromium (para o scraper) e chromedriver via `webdriver-manager`
 - PostgreSQL
-- Conta ativa no OK.ru (apenas para o scraper). A busca via API nao requer login nem banco.
+- (Opcional) Google Chrome/Chromium + chromedriver (apenas para o scraper `get_filmes.py`)
 
-## Setup rapido
+## Variáveis de ambiente (.env)
+```
+DB_HOST=...
+DB_DATABASE=...
+DB_USER=...
+DB_PASSWORD=...
+DB_PORT=...
+
+OKRU_EMAIL=...          # só para scraper
+OKRU_PASSWORD=...       # só para scraper
+OKRU_HEADLESS=True      # só para scraper
+
+KEY_API_TMDB=...        # API key TMDB
+TOKEN_API_TMDB=...      # Bearer TMDB (opcional se já tiver KEY)
+```
+
+## Instalação rápida
 ```bash
-git clone <seu-fork-ou-repo>
+git clone <repo>
 cd ok_api_movie
 python -m venv .venv
-.venv\Scripts\activate    # Windows
+.venv/Scripts/activate    # Windows (ou source .venv/bin/activate no Linux/mac)
 pip install -r requirements.txt
 ```
 
-Crie um `.env` com, no minimo:
-```
-OKRU_EMAIL=seu_email_okru
-OKRU_PASSWORD=sua_senha_okru
-OKRU_HEADLESS=True        # False para ver o navegador
-
-DB_HOST=localhost
-DB_DATABASE=ok
-DB_USER=ok
-DB_PASSWORD=ok
-DB_PORT=5432
+## Rodar o app Flask
+```bash
+python app.py
+# abre em http://127.0.0.1:5000
 ```
 
-## Banco de dados
-O scraper grava em Postgres. Tabelas minimas (ajuste conforme sua necessidade):
-```sql
-CREATE TABLE server (
-  id       SERIAL PRIMARY KEY,
-  server   TEXT    NOT NULL,   -- URL do perfil ex: https://ok.ru/profile/123/video/uploaded
-  active   BOOLEAN NOT NULL DEFAULT TRUE,
-  type     TEXT    NOT NULL DEFAULT 'UPLOAD'  -- usado no filtro do scraper
-);
+### Filtros do frontend
+- Fonte: `API` (OK.ru web) ou `Banco` (tabela `filmes`).
+- Duração (API), HD on/off.
+- Duração/ordenação (Banco).
+- Idioma: PT / EN / ES (passa `lang` para TMDB e título do modal).
 
-CREATE TABLE filmes (
-  id         TEXT PRIMARY KEY,
-  nome       TEXT NOT NULL,
-  tempo      TEXT,
-  imagem     TEXT,
-  idserver   INTEGER REFERENCES server(id),
-  ordernum   INTEGER,
-  created_at DATE NOT NULL
-);
-```
+### Metadados
+1. Limpa o título (guessit + heurística PT-BR) e tenta TMDB (multi search, com/sem ano, fallback en-US).
+2. Se TMDB não achar, tenta API IMDb não oficial (en-US).
+3. Atualiza título do modal se vier vazio na abertura.
+4. Persistência em `infofilmes` só ocorre quando há resultado de API.
 
-## Rodar o scraper (Selenium)
-1) Preencha `OKRU_EMAIL/OKRU_PASSWORD` no `.env` (conta OK.ru obrigatoria).
-2) `python get_filmes.py`
-   - Usa Chrome headless por padrao (`OKRU_HEADLESS=True`).
-   - Acessa o perfil via URL do banco (`server.server`) e abre o modal de login na pagina de videos.
-   - Insere/atualiza `filmes` com titulo/duracao/thumb.
-Obs: se o layout mudar ou o video for privado demais, pode ser preciso ajustar seletores em `get_filmes.py`.
-
-## Rodar o app Flask (frontend)
-1) `.venv\Scripts\activate`
-2) `python app.py` (carrega `.env`)
-3) Acesse `http://127.0.0.1:5000/`
-
-### Funcionalidades do app
-- **Busca via API**: nao precisa banco/login; selecione "API" e busque termos (endpoint web do OK.ru).
-- **Busca no banco**: selecione "Banco" e use filtros locais (tabela `filmes`).
-- Player embutido (`/videoembed/<id>`) e modal com botao de download.
-
-### Downloads via yt-dlp
-- Rota `/download/<video_id>` extrai link direto (mp4/webm) via yt-dlp.
-- Seletor de qualidade envia a altura desejada; o backend escolhe a melhor <= alvo ou a mais proxima disponivel.
-- Limitacao: alguns videos so tem streaming HLS/DASH (m3u8); nesses casos o app informa que o download direto nao esta disponivel.
+## Scraper (opcional)
+`get_filmes.py` usa Selenium para autenticar no OK.ru e popular `filmes`. Preencha `OKRU_EMAIL/OKRU_PASSWORD` e configure tabela `server`/`filmes` (veja `CONTRIBUTING.md` ou código).
 
 ## Estrutura
-- `get_filmes.py`: scraper Selenium + ingestao Postgres.
-- `app.py`: Flask, busca API/BD, rota de download (yt-dlp).
-- `templates/index.html` e `static/`: frontend.
+- `app.py` — Flask, rotas de busca/download/info.
+- `services/tmdb_client.py` — TMDB search/detail com pontuação de candidatos.
+- `services/imdb_fallback.py` — fallback IMDb.
+- `utils/title_cleaner.py` — limpeza de títulos e geração de candidatos.
+- `templates/index.html` + `static/` — frontend (tema, filtros, modal, fallback de imagem).
+- `get_filmes.py` — scraper OK.ru -> Postgres.
 
-## Contribuir
-Contribuicoes sao bem-vindas! Veja `CONTRIBUTING.md` para abrir issues/PRs, padroes e fluxo de branches.
-
-## License
-MIT. Veja `LICENSE`.
+## Deploy (Vercel/WSGI)
+- Apenas Python puro; garanta que `requirements.txt` inclua `rapidfuzz` e `guessit`.
+- Configure as variáveis de ambiente no provedor.
+- Entry-point continua sendo `app.py` (Flask).

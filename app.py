@@ -5,9 +5,13 @@ import psycopg2
 import os
 import random
 import yt_dlp
+
+from services.tmdb_client import buscar_info_tmdb
+from services.imdb_fallback import buscar_info_imdb_fallback
 load_dotenv()
 
 app = Flask(__name__)
+IMAGE_BASE_PREFIX = "https://i.mycdn.me"
 
 def get_conn():
     return psycopg2.connect(  
@@ -36,6 +40,16 @@ def tempo_para_minutos(txt):
         return int(partes[0])
     except ValueError:
         return None
+
+
+def normalize_image_url(url: str):
+    """Garante esquema http/https; prefixa CDN se vier caminho relativo."""
+    if not url:
+        return ""
+    if url.startswith("http://") or url.startswith("https://"):
+        return url
+    path = url if url.startswith("/") else f"/{url}"
+    return f"{IMAGE_BASE_PREFIX}{path}"
     
 def buscar_videos_bd(query, offset=0, limit=20, faixa="", ordem="nome_asc"):
     conn = get_conn()
@@ -76,7 +90,7 @@ def buscar_videos_bd(query, offset=0, limit=20, faixa="", ordem="nome_asc"):
             "id": row[0],
             "title": row[1],
             "duration": row[2],
-            "thumbnail": row[3],
+            "thumbnail": normalize_image_url(row[3]),
             "likes": 0,
             "views": None,
             "minutos": minutos
@@ -125,7 +139,7 @@ def formatar_duracao(ms):
     segundos = segundos % 60
     return f"{horas:02}:{minutos:02}:{segundos:02}"
 
-# Função para buscar vídeos da API OK.ru
+
 def buscar_videos(query, offset, duration="", hd_quality=""):
     import json  # só por garantia
     url = "https://ok.ru/web-api/v2/video/fetchSearchResult"
@@ -357,6 +371,133 @@ def download(video_id):
         return jsonify(data)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+@app.route('/info/<video_id>', methods=['GET'])
+def info(video_id):
+    """
+    Busca dados no TMDB (movie/tv) e salva/retorna infofilmes.
+    Respeita idioma via param lang (pt-BR/es-ES/en-US).
+    """
+    if not video_id:
+        return jsonify({"error": "video_id obrigatorio"}), 400
+
+    titulo_raw = request.args.get("title", "")
+    thumb_raw = request.args.get("thumb", "")
+    thumb_url = normalize_image_url(thumb_raw)
+    lang = (request.args.get("lang") or "").strip() or None
+
+    print(f"[info] req id={video_id} title='{titulo_raw}' lang='{lang}'", flush=True)
+
+    info_db = None
+    try:
+        conn = get_conn()
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT id_imdb, titulo, sinopse, imagem, generos, nota, language
+            FROM infofilmes
+            WHERE id = %s
+        """, (video_id,))
+        row = cur.fetchone()
+        cur.close()
+        conn.close()
+        if row:
+            print(f"[info] found cache for {video_id}", flush=True)
+            info_db = {
+                "id_imdb": row[0],
+                "titulo": row[1],
+                "sinopse": row[2],
+                "imagem": normalize_image_url(row[3]),
+                "generos": row[4],
+                "nota": row[5],
+                "language": row[6]
+            }
+    except Exception:
+        info_db = None
+
+    if info_db and (not lang or not info_db.get("language") or info_db.get("language") == lang):
+        info_db["cached"] = True
+        return jsonify(info_db)
+
+    # Se o título veio vazio/placeholder, tenta buscar no banco (tabela filmes)
+    if not titulo_raw.strip() or "carregando" in titulo_raw.lower():
+        try:
+            conn = get_conn()
+            cur = conn.cursor()
+            cur.execute("SELECT nome FROM filmes WHERE id = %s LIMIT 1", (video_id,))
+            row = cur.fetchone()
+            cur.close()
+            conn.close()
+            if row and row[0]:
+                titulo_raw = row[0]
+                print(f"[info] title fetched from filmes: '{titulo_raw}'", flush=True)
+        except Exception as exc:
+            print(f"[info] title fetch error: {exc}", flush=True)
+
+    info_api = None
+    if titulo_raw.strip():
+        info_api = buscar_info_tmdb(titulo_raw, lang or "")
+        if not info_api:
+            info_api = buscar_info_imdb_fallback(titulo_raw)
+        print(f"[info] api result keys={list(info_api.keys()) if info_api else None}", flush=True)
+    else:
+        print("[info] skipped api call (empty title)", flush=True)
+
+    data = info_api or info_db
+    if not data:
+        data = {
+            "id_imdb": None,
+            "titulo": titulo_raw or "",
+            "sinopse": "",
+            "imagem": thumb_url,
+            "generos": "",
+            "nota": "",
+            "language": lang,
+            "empty": True
+        }
+
+    best_image = data.get("imagem") or thumb_url
+    data["imagem"] = best_image
+    data["language"] = lang or data.get("language")
+    data["cached"] = info_api is None and info_db is not None
+
+    # Só persiste se veio algo da API (requisito do usuário) e não está vazio
+    should_persist = bool(info_api) and not data.get("empty")
+    if should_persist:
+        try:
+            conn = get_conn()
+            cur = conn.cursor()
+            cur.execute("""
+                INSERT INTO infofilmes (id, id_imdb, titulo, sinopse, imagem, generos, nota, language)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT (id) DO UPDATE SET
+                    id_imdb = EXCLUDED.id_imdb,
+                    titulo = EXCLUDED.titulo,
+                    sinopse = EXCLUDED.sinopse,
+                    imagem = EXCLUDED.imagem,
+                    generos = EXCLUDED.generos,
+                    nota = EXCLUDED.nota,
+                    language = EXCLUDED.language
+            """, (
+                video_id,
+                data.get("id_imdb"),
+                data.get("titulo"),
+                data.get("sinopse"),
+                best_image,
+                data.get("generos"),
+                data.get("nota"),
+                lang or data.get("language")
+            ))
+            conn.commit()
+            cur.close()
+            conn.close()
+            print(f"[info] persisted {video_id}", flush=True)
+        except Exception as exc:
+            print(f"[info] persist error {exc}", flush=True)
+    else:
+        print("[info] nothing to persist (empty or no api/db)", flush=True)
+
+    return jsonify(data)
 
 if __name__ == "__main__":
     app.run(debug=True)
