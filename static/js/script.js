@@ -15,6 +15,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const imdbScore = document.getElementById("imdbScore");
     const imdbSynopsis = document.getElementById("imdbSynopsis");
     const imdbLoading = document.getElementById("imdbLoading");
+    const scrollTopBtn = document.getElementById("scrollTopBtn");
     const FALLBACK_THUMB = "https://media.istockphoto.com/id/1306969366/pt/vetorial/no-video-camera-icon-no-video-recording-vector.jpg?s=612x612&w=0&k=20&c=-bxPuvBGcmtH048X8QoQ3mQbIlxnSnItlQKbCeOpkcI=";
 
     const translations = {
@@ -640,6 +641,14 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     window.addEventListener("scroll", function () {
+        if (scrollTopBtn) {
+            if (window.scrollY > 280) {
+                scrollTopBtn.classList.add("visible");
+            } else {
+                scrollTopBtn.classList.remove("visible");
+            }
+        }
+
         if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 200 && !loading) {
             const queryInput = document.getElementById("query").value.trim();
             if (queryInput) {
@@ -648,6 +657,17 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         }
     });
+
+    if (scrollTopBtn) {
+        scrollTopBtn.addEventListener("click", () => {
+            if ("scrollTo" in window) {
+                window.scrollTo({ top: 0, behavior: "smooth" });
+                return;
+            }
+            document.documentElement.scrollTop = 0;
+            document.body.scrollTop = 0;
+        });
+    }
 
     if (downloadBtn) {
         downloadBtn.addEventListener("click", () => solicitarDownload(currentVideoId, currentVideoTitle));

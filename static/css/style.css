@@ -15,6 +15,9 @@
     --input-bg: #f0f2f5;
     --lang-active-color: #2ecc71;
     --lang-inactive-color: #121212;
+    --float-btn-bg: #1576ff;
+    --float-btn-color: #ffffff;
+    --float-btn-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
   }
   
   body.dark {
@@ -26,6 +29,9 @@
     --accent-color: #4ea8ff;
     --input-bg: #1a1a1a;
     --lang-inactive-color: #ffffff;
+    --float-btn-bg: #2f5fa8;
+    --float-btn-color: #e8f0ff;
+    --float-btn-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
   }
   
   /*--------------------------
@@ -44,6 +50,40 @@
   }
   
   img { max-width: 100%; display: block; border-radius: 6px; }
+
+  .scroll-top {
+    position: fixed;
+    right: 1.25rem;
+    bottom: 1.25rem;
+    width: 46px;
+    height: 46px;
+    border: none;
+    border-radius: 50%;
+    background: var(--float-btn-bg);
+    color: var(--float-btn-color);
+    box-shadow: var(--float-btn-shadow);
+    cursor: pointer;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.25s ease, transform 0.25s ease, box-shadow 0.2s ease;
+    pointer-events: none;
+    z-index: 1200;
+  }
+
+  .scroll-top.visible {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+
+  .scroll-top:hover {
+    box-shadow: 0 10px 26px rgba(0, 0, 0, 0.22);
+  }
+
+  .scroll-top:focus-visible {
+    outline: 2px solid var(--accent-color);
+    outline-offset: 2px;
+  }
   
   /*--------------------------
     Cabeçalho / Busca
