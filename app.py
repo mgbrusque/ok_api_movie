@@ -13,6 +13,21 @@ load_dotenv()
 app = Flask(__name__)
 IMAGE_BASE_PREFIX = "https://i.mycdn.me"
 
+
+def get_cloudflare_beacon_token() -> str | None:
+    """Returns Cloudflare Web Analytics beacon token if configured."""
+    token = (os.environ.get("CLOUDFLARE_BEACON_TOKEN") or "").strip()
+    return token or None
+
+
+def use_vercel_analytics() -> bool:
+    """
+    Allows enabling Vercel Web Analytics via env flag.
+    This works only when the app runs on Vercel (script served at /_vercel/insights/script.js).
+    """
+    return (os.environ.get("ENABLE_VERCEL_ANALYTICS") or "").strip().lower() in {"1", "true", "yes"}
+
+
 def get_conn():
     return psycopg2.connect(  
         host=os.environ.get("DB_HOST"),
@@ -318,7 +333,11 @@ def extrair_link_download(video_id: str, prefer_height: int | None = None):
 
 @app.route('/')
 def index():
-    return render_template("index.html")
+    return render_template(
+        "index.html",
+        cf_beacon_token=get_cloudflare_beacon_token(),
+        vercel_analytics=use_vercel_analytics(),
+    )
 
 @app.route('/buscar', methods=['POST'])
 def buscar():

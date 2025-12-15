@@ -122,6 +122,16 @@
     </div>
 
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    {% if cf_beacon_token %}
+    <!-- Cloudflare Web Analytics -->
+    <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "{{ cf_beacon_token }}"}'></script>
+    <!-- End Cloudflare Web Analytics -->
+    {% endif %}
+    {% if vercel_analytics %}
+    <!-- Vercel Web Analytics -->
+    <script defer src="/_vercel/insights/script.js"></script>
+    <!-- End Vercel Web Analytics -->
+    {% endif %}
     <script>
       const toggle = document.getElementById('toggle-theme');
     
