@@ -1,6 +1,6 @@
 window.APP_TRANSLATIONS = {
     pt: {
-        appTitle: "Busca de Vídeos",
+        appTitle: "Cooframe",
         labelLanguage: "Idioma:",
         optionLangPt: "Português (BR)",
         optionLangEn: "English (US)",
@@ -46,7 +46,7 @@ window.APP_TRANSLATIONS = {
         imdbNotFound: "Nenhuma informação do IMDb agora."
     },
     en: {
-        appTitle: "Video Search",
+        appTitle: "Cooframe",
         labelLanguage: "Language:",
         optionLangPt: "Portuguese (BR)",
         optionLangEn: "English (US)",
@@ -92,7 +92,7 @@ window.APP_TRANSLATIONS = {
         imdbNotFound: "No IMDb info found."
     },
     es: {
-        appTitle: "Búsqueda de Videos",
+        appTitle: "Cooframe",
         labelLanguage: "Idioma:",
         optionLangPt: "Portugués (BR)",
         optionLangEn: "Inglés (EE.UU.)",
