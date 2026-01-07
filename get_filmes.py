@@ -299,8 +299,8 @@ def main():
             ) f ON s.id = f.idserver
             WHERE s.active = 1 
               AND s.type = 'UPLOAD' 
-              AND (f.ultima_data < NOW() - INTERVAL '1 month' OR f.ultima_data IS NULL)
-              --AND s.id in (397,396,395,394,393)
+              --AND (f.ultima_data < NOW() - INTERVAL '1 month' OR f.ultima_data IS NULL)
+              AND s.id in (397)
             ORDER BY s.id;
         """)
         perfis = cursor.fetchall()
