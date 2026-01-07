@@ -12,6 +12,16 @@ jobs:
   run:
     runs-on: ubuntu-latest
     timeout-minutes: 360
+    env:
+      PYTHONUNBUFFERED: "1"
+      DB_HOST: ${{ secrets.DB_HOST }}
+      DB_DATABASE: ${{ secrets.DB_DATABASE }}
+      DB_USER: ${{ secrets.DB_USER }}
+      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+      DB_PORT: ${{ secrets.DB_PORT }}
+      OKRU_EMAIL: ${{ secrets.OKRU_EMAIL }}
+      OKRU_PASSWORD: ${{ secrets.OKRU_PASSWORD }}
+      OKRU_HEADLESS: "true"
     steps:
       - uses: actions/checkout@v4
 
@@ -34,14 +44,4 @@ jobs:
           PY
 
       - name: Run scraper
-        env:
-          PYTHONUNBUFFERED: "1"
-          DB_HOST: ${{ secrets.DB_HOST }}
-          DB_DATABASE: ${{ secrets.DB_DATABASE }}
-          DB_USER: ${{ secrets.DB_USER }}
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          DB_PORT: ${{ secrets.DB_PORT }}
-          OKRU_EMAIL: ${{ secrets.OKRU_EMAIL }}
-          OKRU_PASSWORD: ${{ secrets.OKRU_PASSWORD }}
-          OKRU_HEADLESS: "true"
         run: python get_filmes.py
