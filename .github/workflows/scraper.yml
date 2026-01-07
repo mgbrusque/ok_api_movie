@@ -24,6 +24,15 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Check env
+        run: |
+          python - <<'PY'
+          import os
+          keys = ["DB_HOST","DB_DATABASE","DB_USER","DB_PASSWORD","DB_PORT","OKRU_EMAIL","OKRU_PASSWORD"]
+          for k in keys:
+              print(k, "SET" if os.getenv(k) else "MISSING")
+          PY
+
       - name: Run scraper
         env:
           PYTHONUNBUFFERED: "1"
