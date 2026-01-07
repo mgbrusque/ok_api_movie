@@ -11,7 +11,7 @@ concurrency:
 jobs:
   run:
     runs-on: ubuntu-latest
-    environment: production
+    environment: Production
     timeout-minutes: 360
     env:
       PYTHONUNBUFFERED: "1"
