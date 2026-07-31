@@ -18,7 +18,7 @@ from psycopg2 import InterfaceError, OperationalError
 
 load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent
-ARTIFACTS_DIR = BASE_DIR / "artifacts"
+ARTIFACTS_DIR = Path(os.environ.get("OKRU_ARTIFACTS_DIR", str(BASE_DIR / "artifacts")))
 
 
 MAX_TXT = 200

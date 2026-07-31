@@ -20,6 +20,13 @@ python -m unittest discover -s tests -v
 python -m compileall -q app.py services scraping tests
 ```
 
+Se a mudança afetar o container e o Docker estiver disponível, valide também:
+
+```bash
+docker compose config
+docker build -t ok-api-movie:test .
+```
+
 O código Python deve ser legível e seguir PEP 8. Prefira mudanças focadas e não inclua arquivos gerados, ambientes virtuais, drivers, cookies ou credenciais.
 
 ## Ambiente local
