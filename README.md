@@ -15,6 +15,7 @@ Aplicação Flask para pesquisar vídeos do OK.ru, reproduzi-los no navegador e 
 ## Requisitos
 
 - Python 3.11 ou mais recente.
+- Docker com o plugin Compose para a instalação recomendada no CasaOS.
 - PostgreSQL somente para a fonte `Banco`, o cache de metadados e os scrapers.
 - Uma conta MyJDownloader somente para o botão de envio ao servidor.
 - Chrome/Chromium somente para os scrapers que precisarem criar ou renovar cookies.
@@ -116,6 +117,82 @@ JDOWNLOADER_WEB_URL=https://jdownloader.example.com/
 
 No primeiro envio, a aplicação cria ou atualiza uma regra `DIRECTHTTP` chamada `Cooframe OK CDN`, restrita a subdomínios `okcdn.ru`, para repassar o `User-Agent` exigido pelo CDN. As demais regras do JDownloader são preservadas.
 
+## Instalar no CasaOS
+
+O CasaOS é a hospedagem recomendada para o painel administrativo e o JDownloader. Diferentemente da Vercel, o container permanece ativo e o Gunicorn pode aguardar a extração e o LinkGrabber.
+
+### Opção 1: construir no próprio servidor
+
+Abra o terminal do servidor CasaOS e execute:
+
+```bash
+cd /DATA/AppData
+git clone https://github.com/mgbrusque/ok_api_movie.git
+cd ok_api_movie
+cp .env.example .env
+mkdir -p data
+```
+
+Edite `.env`, configure as credenciais e, em produção HTTPS, ajuste pelo menos:
+
+```dotenv
+APP_PORT=5000
+APP_DATA_DIR=/DATA/AppData/ok_api_movie/data
+PUID=1000
+PGID=1000
+SESSION_COOKIE_SECURE=true
+GUNICORN_WORKERS=1
+GUNICORN_THREADS=4
+GUNICORN_TIMEOUT=300
+```
+
+Garanta que o usuário do container possa gravar os cookies e artefatos persistentes e suba a aplicação:
+
+```bash
+sudo chown -R 1000:1000 /DATA/AppData/ok_api_movie/data
+docker compose up -d --build
+docker compose ps
+docker compose logs -f app
+```
+
+A interface ficará em `http://IP_DO_CASAOS:5000`. No CasaOS, você pode criar um ícone em **Instalação personalizada** apontando a Web UI para essa porta; o container já estará sendo gerenciado pelo Docker Compose.
+
+### Opção 2: imagem pronta do GitHub
+
+O workflow `Container` publica imagens `amd64` e `arm64` no GitHub Container Registry. Depois da primeira publicação, defina a visibilidade do pacote como pública e use:
+
+```bash
+docker compose -f compose.casaos.yml pull
+docker compose -f compose.casaos.yml up -d
+```
+
+O arquivo `compose.casaos.yml` também pode ser usado como base na instalação personalizada do CasaOS. Ele usa a imagem `ghcr.io/mgbrusque/ok_api_movie:latest` e o diretório `/DATA/AppData/ok_api_movie/data` quando `APP_DATA_DIR` não for informado.
+
+### Proxy reverso e JDownloader
+
+No Nginx, encaminhe o domínio da aplicação para `http://IP_DO_CASAOS:5000` e mantenha HTTPS ativo. O JDownloader pode continuar em seu próprio container e domínio protegido.
+
+O OK API Movie usa a API em nuvem do MyJDownloader, portanto não exponha a porta `3129` e não é necessário colocar os dois containers na mesma rede. `MYJD_DOWNLOAD_FOLDER=/output` continua representando o caminho dentro do container do JDownloader; o container desta aplicação não precisa montar a pasta dos filmes.
+
+O volume `/data` preserva `okru_cookies.json` e artefatos dos scrapers. Chromium e Chromedriver já estão incluídos na imagem e são configurados automaticamente pelo Compose.
+
+### Atualizar no CasaOS
+
+Para uma instalação construída no servidor:
+
+```bash
+cd /DATA/AppData/ok_api_movie
+git pull --ff-only
+docker compose up -d --build
+```
+
+Para a imagem pronta:
+
+```bash
+docker compose -f compose.casaos.yml pull
+docker compose -f compose.casaos.yml up -d
+```
+
 ## Executar
 
 Desenvolvimento local:
@@ -128,7 +205,7 @@ python app.py
 Produção Linux com Gunicorn:
 
 ```bash
-gunicorn --bind 0.0.0.0:5000 app:app
+gunicorn --config gunicorn.conf.py app:app
 ```
 
 Produção Windows com Waitress:
@@ -173,6 +250,8 @@ python -m compileall -q app.py services scraping tests
 - `scraping/`: coletores Selenium e HTTP.
 - `templates/` e `static/`: interface web.
 - `tests/`: testes automatizados.
+- `Dockerfile`, `compose.yml` e `compose.casaos.yml`: implantação persistente no CasaOS.
+- `gunicorn.conf.py`: workers, threads, porta e timeout da aplicação em produção.
 
 ## Vercel e ambientes serverless
 

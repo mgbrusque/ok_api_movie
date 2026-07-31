@@ -101,6 +101,11 @@ def index():
     )
 
 
+@app.route("/healthz", methods=["GET"])
+def healthz():
+    return jsonify({"status": "ok"})
+
+
 @app.route("/auth/status", methods=["GET"])
 def auth_status():
     authenticated = is_admin_authenticated()

@@ -20,7 +20,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 
 load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent
-ARTIFACTS_DIR = BASE_DIR / "artifacts"
+ARTIFACTS_DIR = Path(os.environ.get("OKRU_ARTIFACTS_DIR", str(BASE_DIR / "artifacts")))
 
 
 def env_bool(name, default=False):
@@ -122,12 +122,16 @@ def start_driver():
     # Don't wait for full load; the login form appears earlier.
     opt.page_load_strategy = "eager"
 
-    try:
-        driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=opt)
-    except Exception as e:
-        # Fallback when webdriver-manager cache has permissions/issues.
-        print(f"[warn] ChromeDriverManager falhou ({e}); tentando chromedriver do PATH.")
-        driver = webdriver.Chrome(options=opt)
+    chromedriver_binary = (os.environ.get("OKRU_CHROMEDRIVER") or "").strip()
+    if chromedriver_binary:
+        driver = webdriver.Chrome(service=Service(chromedriver_binary), options=opt)
+    else:
+        try:
+            driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=opt)
+        except Exception as e:
+            # Fallback when webdriver-manager cache has permissions/issues.
+            print(f"[warn] ChromeDriverManager falhou ({e}); tentando chromedriver do PATH.")
+            driver = webdriver.Chrome(options=opt)
 
     try:
         driver.execute_cdp_cmd(

@@ -92,6 +92,11 @@ class AuthAndAdminRoutesTest(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.get_json(), expected)
 
+    def test_healthcheck_is_public(self):
+        response = self.client.get("/healthz")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.get_json(), {"status": "ok"})
+
     def test_selected_format_is_sent_to_jdownloader(self):
         token = self._login()
         extracted = {
