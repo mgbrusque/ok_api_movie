@@ -1,0 +1,11 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+.wdm/
+.env
+.env.*
+!.env.example
+*.log
+scraping/okru_cookies.json
+scraping/artifacts/

@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cooframe</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/favicon.png') }}">
+</head>
+<body>
+    
+    <div id="searchContainer">
+        <!-- LOGO à esquerda -->
+        <a href="/" class="logo">
+          <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Logo" />
+        </a>
+      
+        <!-- CONTROLES à direita -->
+        <div class="controls">
+          <div class="auth-controls">
+            <span id="authUsername" class="auth-username" hidden></span>
+            <button id="loginBtn" type="button" class="btn-secondary" data-i18n="buttonLogin">Login</button>
+            <button id="logoutBtn" type="button" class="btn-secondary" data-i18n="buttonLogout" hidden>Sair</button>
+          </div>
+          <div class="toggle-container">
+            <span class="icon" aria-hidden="true">🌙</span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="toggle-theme">
+              <span class="slider"></span>
+            </label>
+            <span class="icon" aria-hidden="true">☀️</span>
+          </div>
+          <div class="language-switch" role="group" aria-label="Idioma">
+            <button type="button" class="lang-option" data-lang="pt">PT</button>
+            <span class="lang-divider">|</span>
+            <button type="button" class="lang-option" data-lang="en">EN</button>
+            <span class="lang-divider">|</span>
+            <button type="button" class="lang-option" data-lang="es">ES</button>
+          </div>
+      
+          <form id="searchForm">
+            <label for="fonte" data-i18n="labelSource">Fonte:</label>
+            <select id="fonte" name="fonte">
+              <option value="API" data-i18n="optionSourceApi">API</option>  
+              <option value="BD" data-i18n="optionSourceDb">Banco</option>
+            </select>
+            
+            <!-- filtros só da API -->
+            <div id="filters-api" class="filters">
+              <label for="duration" data-i18n="labelDurationApi">Duração:</label>
+              <select id="duration" name="duration">
+                <option value="" data-i18n="optionDurationAny">Qualquer duração</option>
+                <option value="LONG" data-i18n="optionDurationLong">Longo</option>
+                <option value="SHORT" data-i18n="optionDurationShort">Curto</option>
+              </select>
+
+              <label for="hd" data-i18n="labelHd">HD:</label>
+              <input type="checkbox" id="hd" name="hd">
+            </div>
+
+            <!-- filtros só do Banco -->
+            <div id="filters-bd" class="filters" style="display:none">
+              <label for="duration_bd" data-i18n="labelDurationBd">Duração:</label>
+              <select id="duration_bd" name="duration_bd">
+                <option value="" data-i18n="optionDurationBdAll">Todas</option>
+                <option value="0-20" data-i18n="optionDurationBd0_20">0-20 min</option>
+                <option value="21-60" data-i18n="optionDurationBd21_60">21-60 min</option>
+                <option value="61-90" data-i18n="optionDurationBd61_90">61-90 min</option>
+                <option value="91-120" data-i18n="optionDurationBd91_120">91-120 min</option>
+                <option value="121-160" data-i18n="optionDurationBd121_160">121-160 min</option>
+                <option value="161-200" data-i18n="optionDurationBd161_200">161-200 min</option>
+                <option value="201+" data-i18n="optionDurationBd201Plus">> 201 min</option>
+              </select>
+
+              <label for="order_bd" data-i18n="labelOrder">Ordem:</label>
+              <select id="order_bd" name="order_bd">
+                <option value="tempo_desc" data-i18n="optionOrderTimeDesc">Tempo decrescente</option>
+                <option value="tempo_asc" data-i18n="optionOrderTimeAsc">Tempo crescente</option>
+                <option value="nome_asc" data-i18n="optionOrderNameAsc">Nome A-Z</option>
+                <option value="nome_desc" data-i18n="optionOrderNameDesc">Nome Z-A</option>
+                <option value="random" data-i18n="optionOrderRandom">Aleatório</option>
+              </select>
+            </div>
+      
+            <input type="text" id="query" data-i18n-placeholder="placeholderSearch" placeholder="Digite o que deseja buscar..." required>
+            <button type="submit" data-i18n="buttonSearch">Buscar</button>
+          </form>
+        </div>
+    </div>
+    <div><h5 id="totalResults"></h5></div>
+    <div id="videoResults"></div>
+
+    <button id="scrollTopBtn" class="scroll-top" type="button" aria-label="Voltar ao topo">&uarr;</button>
+
+    <!-- Modal -->
+    <div id="videoModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h4 id="modalTitle"></h4>
+            <div class="modal-body">
+                <iframe id="videoFrame" frameborder="0" allowfullscreen></iframe>
+                <div id="imdbLoading" class="imdb-loading"></div>
+                <div id="imdbInfo" class="imdb-info" style="display:none;">
+                    <div class="imdb-poster-wrap">
+                        <img id="imdbPoster" alt="Poster IMDb">
+                    </div>
+                    <div class="imdb-meta">
+                        <div class="imdb-headline">
+                            <h5 id="imdbTitle"></h5>
+                            <span id="imdbScore" class="imdb-score"></span>
+                        </div>
+                        <div id="imdbGenres" class="imdb-genres"></div>
+                        <p id="imdbSynopsis" class="imdb-synopsis"></p>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <label for="qualitySelect" data-i18n="labelQuality">Qualidade:</label>
+                    <select id="qualitySelect">
+                        <option value="" data-i18n="optionQualityAuto">Auto (melhor)</option>
+                        <option value="1080">1080p</option>
+                        <option value="720">720p</option>
+                        <option value="480">480p</option>
+                        <option value="360">360p</option>
+                    </select>
+                    <button id="downloadBtn" class="btn-primary" data-i18n="buttonDownload">Baixar vídeo</button>
+                </div>
+                <section id="adminDownloadPanel" class="admin-download-panel" hidden>
+                    <div class="admin-panel-heading">
+                        <strong data-i18n="adminToolsTitle">Enviar ao servidor</strong>
+                        <span class="admin-badge" data-i18n="adminBadge">Administrador</span>
+                    </div>
+                    <div class="admin-actions">
+                        <button id="checkFormatsBtn" type="button" class="btn-secondary" data-i18n="buttonCheckFormats">Verificar resoluções</button>
+                        <label for="jdQualitySelect" data-i18n="labelAvailableQuality">Resolução disponível:</label>
+                        <select id="jdQualitySelect" disabled>
+                            <option value="" data-i18n="optionCheckFormatsFirst">Verifique primeiro</option>
+                        </select>
+                        <button id="sendJdBtn" type="button" class="btn-primary" data-i18n="buttonSendJd" disabled>Enviar ao JDownloader</button>
+                        {% if jdownloader_web_url %}
+                        <a id="openJdLink" class="btn-link" href="{{ jdownloader_web_url }}" target="_blank" rel="noopener noreferrer" data-i18n="buttonOpenJd">Abrir JDownloader</a>
+                        {% endif %}
+                    </div>
+                    <p id="adminDownloadStatus" class="admin-status" role="status" aria-live="polite"></p>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <!-- Login administrativo -->
+    <div id="loginModal" class="modal auth-modal" aria-hidden="true">
+        <div class="login-modal-content" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
+            <button id="closeLoginBtn" class="close-login" type="button" aria-label="Fechar">&times;</button>
+            <h3 id="loginTitle" data-i18n="loginTitle">Acesso administrativo</h3>
+            <p data-i18n="loginDescription">Entre para enviar filmes ao servidor.</p>
+            <form id="loginForm">
+                <label for="adminUsername" data-i18n="labelUsername">Usuário</label>
+                <input id="adminUsername" name="username" type="text" autocomplete="username" required maxlength="80">
+                <label for="adminPassword" data-i18n="labelPassword">Senha</label>
+                <input id="adminPassword" name="password" type="password" autocomplete="current-password" required>
+                <button id="loginSubmitBtn" type="submit" class="btn-primary" data-i18n="buttonLogin">Login</button>
+                <p id="loginStatus" class="auth-status" role="status" aria-live="polite"></p>
+            </form>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/translations.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/utils.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/modal.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/search.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    {% if cf_beacon_token %}
+    <!-- Cloudflare Web Analytics -->
+    <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "{{ cf_beacon_token }}"}'></script>
+    <!-- End Cloudflare Web Analytics -->
+    {% endif %}
+    {% if vercel_analytics %}
+    <!-- Vercel Web Analytics -->
+    <script defer src="/_vercel/insights/script.js"></script>
+    <!-- End Vercel Web Analytics -->
+    {% endif %}
+    <script>
+      const toggle = document.getElementById('toggle-theme');
+    
+      // Aplica o modo escuro por padrão, se não tiver nada salvo
+      if (!localStorage.getItem('theme')) {
+        document.body.classList.add('dark');
+        toggle.checked = true;
+        localStorage.setItem('theme', 'dark');
+      }
+    
+      // Se o usuário já escolheu, respeita isso
+      if (localStorage.getItem('theme') === 'dark') {
+        document.body.classList.add('dark');
+        toggle.checked = true;
+      }
+    
+      toggle.addEventListener('change', () => {
+        document.body.classList.toggle('dark');
+        localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+      });
+    </script>
+    
+</body>
+</html>

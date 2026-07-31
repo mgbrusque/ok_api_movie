@@ -1,0 +1,689 @@
+/* =========================
+   style.css  (v2)
+   ========================= */
+
+/*--------------------------
+  Variáveis de tema
+---------------------------*/
+:root {
+    /* LIGHT */
+    --bg-color: #ffffff;
+    --text-color: #121212;
+    --card-bg: #f8f8f8;
+    --card-shadow: rgba(0, 0, 0, 0.08);
+    --accent-color: #1576ff;
+    --input-bg: #f0f2f5;
+    --lang-active-color: #2ecc71;
+    --lang-inactive-color: #121212;
+    --float-btn-bg: #1576ff;
+    --float-btn-color: #ffffff;
+    --float-btn-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+  }
+  
+  body.dark {
+    /* DARK */
+    --bg-color: #121212;
+    --text-color: #e0e0e0;
+    --card-bg: #1e1e1e;
+    --card-shadow: rgba(0, 0, 0, 0.6);
+    --accent-color: #4ea8ff;
+    --input-bg: #1a1a1a;
+    --lang-inactive-color: #ffffff;
+    --float-btn-bg: #2f5fa8;
+    --float-btn-color: #e8f0ff;
+    --float-btn-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+  }
+  
+  /*--------------------------
+    Reset & base
+  ---------------------------*/
+  *,
+  *::before,
+  *::after { box-sizing: border-box; }
+  
+  body {
+    margin: 0;
+    font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg-color);
+    color: var(--text-color);
+    transition: background 0.3s, color 0.3s;
+  }
+  
+  img { max-width: 100%; display: block; border-radius: 6px; }
+
+  [hidden] { display: none !important; }
+
+  .btn-primary,
+  .btn-secondary,
+  .btn-link {
+    min-height: 36px;
+    padding: 0.45rem 0.8rem;
+    border-radius: 5px;
+    font: inherit;
+    font-size: 0.9rem;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .btn-primary {
+    border: 1px solid var(--accent-color);
+    background: var(--accent-color);
+    color: #fff;
+  }
+
+  .btn-secondary,
+  .btn-link {
+    border: 1px solid var(--accent-color);
+    background: transparent;
+    color: var(--accent-color);
+  }
+
+  button:disabled,
+  select:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+  }
+
+  .scroll-top {
+    position: fixed;
+    right: 1.25rem;
+    bottom: 1.25rem;
+    width: 46px;
+    height: 46px;
+    border: none;
+    border-radius: 50%;
+    background: var(--float-btn-bg);
+    color: var(--float-btn-color);
+    box-shadow: var(--float-btn-shadow);
+    cursor: pointer;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.25s ease, transform 0.25s ease, box-shadow 0.2s ease;
+    pointer-events: none;
+    z-index: 1200;
+  }
+
+  .scroll-top.visible {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+
+  .scroll-top:hover {
+    box-shadow: 0 10px 26px rgba(0, 0, 0, 0.22);
+  }
+
+  .scroll-top:focus-visible {
+    outline: 2px solid var(--accent-color);
+    outline-offset: 2px;
+  }
+  
+  /*--------------------------
+    Cabeçalho / Busca
+  ---------------------------*/
+  #searchContainer {
+    padding: 0.75rem 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem;
+    background: var(--card-bg);
+    box-shadow: 0 2px 4px var(--card-shadow);
+  }
+  
+  .toggle-container { display: flex; align-items: center; gap: 0.25rem; }
+  .auth-controls { display: flex; align-items: center; gap: 0.4rem; }
+  .auth-username { font-size: 0.85rem; font-weight: 600; max-width: 120px; overflow: hidden; text-overflow: ellipsis; }
+  .language-switch { display: flex; align-items: center; gap: 0.35rem; }
+  .lang-option {
+    background: transparent;
+    border: none;
+    color: var(--lang-inactive-color);
+    font-weight: 700;
+    font-size: 0.95rem;
+    cursor: pointer;
+    padding: 0.2rem 0.15rem;
+    transition: color 0.2s, transform 0.15s;
+  }
+  .lang-option.active { color: var(--lang-active-color); }
+  .lang-option:focus-visible { outline: 2px solid var(--accent-color); outline-offset: 2px; }
+  .lang-option:hover { transform: translateY(-1px); }
+  .lang-divider { color: var(--lang-inactive-color); opacity: 0.6; }
+  
+  /* Toggle switch */
+  .toggle-switch { position: relative; width: 46px; height: 24px; }
+  .toggle-switch input { opacity: 0; width: 0; height: 0; }
+  
+  .toggle-switch .slider {
+    position: absolute; inset: 0;
+    background: #ccc; border-radius: 24px;
+    transition: background 0.3s;
+  }
+  .toggle-switch .slider::before {
+    content: ""; position: absolute;
+    height: 18px; width: 18px; left: 3px; bottom: 3px;
+    background: #fff; border-radius: 50%;
+    transition: transform 0.3s;
+  }
+  .toggle-switch input:checked + .slider { background: var(--accent-color); }
+  .toggle-switch input:checked + .slider::before { transform: translateX(22px); }
+  
+  /* Formulário */
+  /*.search-row { flex: 1 1 320px; }*/
+  #searchForm { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+  
+  #searchForm .filters { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+  
+  #searchForm select,
+  #searchForm input[type="text"] {
+    padding: 0.35rem 0.5rem;
+    border: 1px solid #c7c7c7;
+    border-radius: 4px;
+    background: var(--input-bg);
+    color: var(--text-color);
+    font-size: 0.9rem;
+  }
+  
+  #searchForm button {
+    padding: 0.45rem 1rem;
+    border: none; border-radius: 4px;
+    background: var(--accent-color); color: #fff;
+    cursor: pointer; font-size: 0.9rem;
+    transition: opacity 0.2s;
+  }
+  #searchForm button:hover { opacity: 0.9; }
+  
+  /*--------------------------
+    Indicador de total
+  ---------------------------*/
+  #totalResults { margin: 0.5rem 1rem; font-weight: 400; }
+  
+  /*--------------------------
+    Cards de vídeo
+  ---------------------------*/
+  #videoResults {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    padding: 0 1rem 2rem;
+  }
+  
+  .video-card {
+    background: var(--card-bg);
+    border-radius: 8px;
+    box-shadow: 0 2px 6px var(--card-shadow);
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    overflow: hidden;
+    text-align: center;          /* <<— centraliza tudo */
+  }
+  
+  .video-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 12px var(--card-shadow);
+  }  
+  
+  /* thumb */
+  /* Imagem: altura máxima fixa */
+  .video-card .thumb-wrapper img {
+    max-height: 160px;
+    width: 100%;
+    object-fit: cover;
+    border-radius: 6px 6px 0 0;
+  }
+
+  .video-card .video-thumbnail {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    border-radius: 6px 6px 0 0;
+    background: var(--input-bg);
+    display: block;
+  }
+
+  .video-card .duration-badge {
+    position: absolute; bottom: 6px; right: 6px;
+    background: rgba(0, 0, 0, 0.75); color: #fff;
+    padding: 0 6px; border-radius: 3px; font-size: 0.75rem;
+  }
+  
+  /* título */
+  .video-card h3 {
+    margin: 0.75rem 0.75rem 0.25rem;
+    font-size: 1rem; line-height: 1.3; font-weight: 600;
+  }
+  
+  /* Espaço para meta e botão */
+  .video-card .meta {
+    margin-top: auto;
+    padding-bottom: .5rem;
+  }
+  
+  /*--------------------------
+    Modal
+  ---------------------------*/
+.modal {
+  position: fixed; inset: 0; z-index: 1000;
+  background: rgba(0, 0, 0, 0.6);
+  display: none; align-items: center; justify-content: center;
+  padding: 1rem;
+}
+.modal.open { display: flex; }
+
+.modal-content {
+  background: var(--card-bg); color: var(--text-color);
+  width: 100%; max-width: 900px;
+  border-radius: 10px; overflow: hidden;
+  box-shadow: 0 4px 10px var(--card-shadow);
+  position: relative;
+  animation: zoom 0.25s ease-out;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+}
+  
+  @keyframes zoom {
+    from { transform: scale(0.9); opacity: 0; }
+    to   { transform: scale(1);   opacity: 1; }
+  }
+  
+  .modal-content h4 {
+    margin: 0; padding: 0.75rem 1rem;
+    border-bottom: 1px solid rgba(0,0,0,0.08);
+    font-size: 1.1rem; background: var(--input-bg);
+  }
+  
+.modal-body {
+  flex: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0 1rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.modal-content iframe { width: 100%; height: 420px; border: none; display: block; border-radius: 8px; }
+
+  .close {
+    position: absolute; top: 8px; right: 12px;
+    font-size: 1.6rem; cursor: pointer;
+    color: var(--text-color); opacity: 0.7;
+  }
+  .close:hover { opacity: 1; }
+
+  /* IMDb info */
+  .imdb-loading {
+    padding: 0.75rem 1rem 0;
+    font-size: 0.95rem;
+    opacity: 0.8;
+  }
+
+.imdb-info {
+  display: grid;
+  grid-template-columns: 130px 1fr;
+  gap: 0.9rem;
+  padding: 0.75rem;
+  background: var(--input-bg);
+  border-radius: 8px;
+  align-items: start;
+}
+
+.imdb-poster-wrap {
+  width: 100%;
+  max-width: 130px;
+  max-height: 210px;
+  aspect-ratio: 2 / 3;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+}
+
+.imdb-poster-wrap img {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  display: block;
+}
+
+  .imdb-meta h5 {
+    margin: 0;
+    font-size: 1.05rem;
+  }
+
+  .imdb-headline {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .imdb-score {
+    background: #f5c518;
+    color: #000;
+    padding: 0.2rem 0.55rem;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 0.9rem;
+  }
+
+  .imdb-genres {
+    font-size: 0.9rem;
+    opacity: 0.85;
+    margin-bottom: 0.35rem;
+  }
+
+.imdb-synopsis {
+  margin: 0;
+  line-height: 1.5;
+  font-size: 0.95rem;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.modal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  padding: 0.75rem 0 0;
+}
+
+.admin-download-panel {
+  border: 1px solid var(--accent-color);
+  border: 1px solid color-mix(in srgb, var(--accent-color) 45%, transparent);
+  border-radius: 8px;
+  padding: 0.85rem;
+  background: var(--card-bg);
+  background: color-mix(in srgb, var(--accent-color) 7%, var(--card-bg));
+}
+
+.admin-panel-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.7rem;
+}
+
+.admin-badge {
+  padding: 0.18rem 0.5rem;
+  border-radius: 999px;
+  background: var(--accent-color);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.admin-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.admin-actions select {
+  min-height: 36px;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid #c7c7c7;
+  border-radius: 5px;
+  background: var(--input-bg);
+  color: var(--text-color);
+}
+
+.admin-status,
+.auth-status {
+  min-height: 1.25rem;
+  margin: 0.65rem 0 0;
+  font-size: 0.88rem;
+}
+
+.admin-status[data-state="success"] { color: #16833b; }
+.admin-status[data-state="error"],
+.auth-status[data-state="error"] { color: #d43f3a; }
+.admin-status[data-state="loading"] { opacity: 0.75; }
+
+.auth-modal { z-index: 1400; }
+
+.login-modal-content {
+  width: min(100%, 410px);
+  position: relative;
+  padding: 1.25rem;
+  border-radius: 10px;
+  background: var(--card-bg);
+  color: var(--text-color);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.32);
+  animation: zoom 0.2s ease-out;
+}
+
+.login-modal-content h3 { margin: 0 2rem 0.35rem 0; }
+.login-modal-content > p { margin: 0 0 1rem; opacity: 0.8; }
+.login-modal-content form { display: grid; gap: 0.45rem; }
+.login-modal-content input {
+  width: 100%;
+  padding: 0.65rem;
+  margin-bottom: 0.35rem;
+  border: 1px solid #c7c7c7;
+  border-radius: 5px;
+  background: var(--input-bg);
+  color: var(--text-color);
+  font: inherit;
+}
+
+.close-login {
+  position: absolute;
+  top: 0.55rem;
+  right: 0.7rem;
+  border: 0;
+  background: transparent;
+  color: var(--text-color);
+  font-size: 1.65rem;
+  cursor: pointer;
+}
+
+/*--------------------------
+  Responsividade
+---------------------------*/
+@media (max-width: 768px) {
+  #searchContainer { flex-direction: column; align-items: flex-start; }
+  #videoResults   { grid-template-columns: 1fr; }  /* um card por linha */
+  .modal-content { max-height: 92vh; }
+  .modal-content iframe { height: 260px; }
+  .modal-body { padding: 0.75rem; }
+  .modal-actions { gap: 0.35rem; }
+  .admin-actions { align-items: stretch; flex-direction: column; }
+  .admin-actions > * { width: 100%; }
+  .imdb-info { grid-template-columns: 110px 1fr; }
+  .imdb-poster-wrap { max-width: 110px; margin: 0; aspect-ratio: 2 / 3; max-height: 180px; }
+  .imdb-headline { flex-direction: column; align-items: flex-start; gap: 0.25rem; }
+}
+  
+  /* =========================================
+   BOTÃO “ASSISTIR” – preenche a base do card
+   ========================================= */
+
+/* 1) Variáveis de cor (adicione depois das outras, lá no topo) */
+:root {
+    --watch-bg: #ff7043;       /* cor principal do botão */
+    --watch-hover: #ff8a65;    /* cor no hover */
+  }
+  
+  body.dark {
+    --watch-bg: #ff5722;
+    --watch-hover: #ff6e40;
+  }
+  
+  /* 2) Torna o card flex-column p/ o botão grudar em baixo */
+  .video-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: auto;
+    max-width: 100%;
+    padding-bottom: 0;
+    background: var(--card-bg);
+    border-radius: 8px;
+    box-shadow: 0 2px 6px var(--card-shadow);
+    text-align: center;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  
+  /* Botão */
+  .video-card .watch-btn {
+    width: 100%;
+    border: none;
+    border-top: 1px solid rgba(0,0,0,.05);
+    border-radius: 0 0 8px 8px;
+    background: var(--watch-bg);
+    color: #fff;
+    font-weight: 600;
+    font-size: 0.95rem;
+    padding: 0.65rem 0;
+    cursor: pointer;
+    transition: background 0.25s, transform 0.15s;
+    margin-top: auto;
+  }
+
+  .video-card .watch-btn:hover,
+  .video-card .watch-btn:focus {
+    background: var(--watch-hover);
+    transform: translateY(-2px);
+  }
+
+  .video-card .watch-btn:active {
+    transform: scale(.98);
+  }
+  
+  /* =========================
+   Ajustes Mobile ≤ 480 px
+   ========================= */
+@media (max-width: 480px) {
+
+    /* container vira coluninha */
+    #searchContainer{
+      flex-direction: column;
+      align-items: stretch;
+      gap: .75rem;
+    }
+  
+    /* lua/sol + toggle ocupam uma linha sozinhos */
+    .toggle-container{
+      justify-content: flex-start;
+      margin-bottom: .25rem;
+    }
+  
+    /* formulário em coluna */
+    #searchForm{
+      flex-direction: column;
+      gap: .5rem;
+    }
+  
+    /* filtros na mesma linha, mas 100% de largura */
+    #searchForm .filters{
+      width: 100%;
+      justify-content: space-between;
+    }
+  
+    /* campos ocupam toda a largura */
+    #searchForm select,
+    #searchForm input[type="text"],
+    #searchForm button{
+      width: 100%;
+    }
+  
+    /* dá um respirinho pro botão */
+    #searchForm button{
+      margin-top: .25rem;
+    }
+  
+    /* grid vira lista (já era 1fr no ≤ 768, mas pra garantir) */
+    #videoResults{
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+
+    /* deixa título um pouco menor */
+    .video-card h3{
+      font-size: .9rem;
+    }
+  }
+  
+  /* =========================================================
+   CABEÇALHO:  1 linha em desktop  |  bloco centralizado no mobile
+   ========================================================= */
+
+/* ----- DESKTOP / TABLET  ≥ 600 px ----- */
+@media (min-width: 600px) {
+
+  /* 1) Logo à esquerda – controles numa linha só à direita */
+  #searchContainer{
+    justify-content: space-between;   /* logo ⇠⇢ controles */
+    flex-wrap: nowrap;                /* NADA de quebra pra 2ª linha */
+  }
+
+  /* 2) Bloco com toggle + form fica tudo inline */
+  .controls{
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex: 1;                          /* pode ocupar o resto do espaço */
+    min-width: 0;                     /* permite encolher sem quebrar */
+  }
+
+  /* 3) Form vira flex-inline também, sem quebrar */
+  #searchForm{
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap;                /* mantém 1 linha */
+    gap: .5rem;
+    flex: 1;
+    min-width: 0;
+  }
+
+  /* 4) Faz o input de texto se adaptar, sem empurrar tudo */
+  #query{
+    flex: 1 1 180px;                  /* cresce e encolhe, mínimo 180px */
+    min-width: 120px;
+  }
+}
+
+/* ----- MOBILE  ≤ 480 px -----  (ajusta centralização) */
+@media (max-width: 480px) {
+
+  /* mantém coluna, mas centraliza todo o cabeçalho na tela */
+  #searchContainer{
+    flex-direction: column;
+    align-items: center;              /* centraliza logo + campos */
+    max-width: 320px;                 /* largura “cartão” */
+    margin: 0 auto;                   /* centra no viewport */
+  }
+
+  /* controles em coluna, alinhados no centro */
+  .controls{
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+  }
+
+  #searchForm{
+    flex-direction: column;
+    width: 100%;
+  }
+
+  /* larga full-width pros campos */
+  #searchForm select,
+  #searchForm input[type="text"],
+  #searchForm button{ width: 100%; }
+}
+
+/* ----- LOGO (tamanho) ----- */
+.logo img{
+  height: 36px;        /* ajuste aqui se quiser maior/menor */
+  display: block;
+}

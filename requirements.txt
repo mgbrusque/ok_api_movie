@@ -1,0 +1,13 @@
+flask
+requests
+gunicorn
+waitress
+psycopg2-binary
+python-dotenv
+selenium-wire
+webdriver-manager
+blinker>=1.9
+yt-dlp
+myjdapi>=1.1.10,<2
+rapidfuzz
+guessit
